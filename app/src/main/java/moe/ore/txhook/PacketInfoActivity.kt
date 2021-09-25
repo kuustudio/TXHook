@@ -1,34 +1,38 @@
 package moe.ore.txhook
 
 import android.os.Bundle
-import androidx.viewpager.widget.ViewPager
-import com.google.android.material.tabs.TabLayout
-import moe.ore.txhook.databinding.ActivityPacketInfoBinding
-import moe.ore.txhook.datas.PacketInfoData
 import moe.ore.txhook.more.BaseActivity
 import moe.ore.txhook.ui.main.PacketPagerAdapter
+import moe.ore.txhook.databinding.ActivityPacketInfoBinding
 
-class PacketInfoActivity: BaseActivity() {
+class PacketInfoActivity : BaseActivity() {
     private lateinit var binding: ActivityPacketInfoBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Inflate layout binding
         binding = ActivityPacketInfoBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val data = intent.getParcelableExtra<PacketInfoData>("data")!!
+        // Bind view pager
+        binding.viewPager.also {
 
-        val packetPagerAdapter = PacketPagerAdapter(this, supportFragmentManager, data)
-        val viewPager: ViewPager = binding.viewPager
+            // Get adapter
+            val adapter = PacketPagerAdapter(
+                this,
+                supportFragmentManager,
+                intent.getParcelableExtra("data")!!
+            )
 
-        viewPager.adapter = packetPagerAdapter
-        val tabs: TabLayout = binding.tabs
+            // Set adapter
+            it.adapter = adapter
+            binding.tabs.setupWithViewPager(it)
+        }
 
-        tabs.setupWithViewPager(viewPager)
+        // On back pressed
+        binding.back.setOnClickListener {
+            this.onBackPressed()
+        }
     }
-
-
-
-
 }
