@@ -12,19 +12,22 @@
         android:layout_height="match_parent"
         android:alpha="0"
         app:xui_radius="12dp">
+
         <ScrollView
             android:layout_width="match_parent"
             android:background="#407bbfea"
             android:layout_height="match_parent">
+
             <com.xuexiang.xui.widget.textview.autofit.AutoFitTextView
                 android:id="@+id/data"
                 android:layout_width="match_parent"
                 android:layout_margin="10dp"
                 android:gravity="top|start"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:textColor="@color/black"
                 android:textIsSelectable="true"
                 android:textSize="20sp"/>
+
         </ScrollView>
 
     </com.xuexiang.xui.widget.layout.XUILinearLayout>

@@ -45,7 +45,7 @@ class PacketInfoData() : Parcelable {
     var sessionId: ByteArray = EMPTY_BYTE_ARRAY
 
     var encodeType: Byte = 0
-    var packetType: Int = 0
+    var packetType: Int = -100
 
     var firstTokenSize: Int = 0
     var firstToken: ByteArray = EMPTY_BYTE_ARRAY

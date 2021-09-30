@@ -82,17 +82,23 @@ class PacketFragment(private val sectionNumber: Int, private val data: PacketInf
                     .addItemView(descItem, copyListener)
                     .addTo(groupListView)
 
+                if (data.packetType != -100) {
+                // 默认packettype为-100，如果默认值不变则是发送的包
+                    // 只有发送的包可以hook拿到packettype，其它没办法，在代码里面也只给发送的包传递bundles的时候设置了packettype
+                    val packetTypeItem = groupListView.createItemView("PacketType")
+                    packetTypeItem.detailText = data.packetType.toString() // 发包类型 有 0a 0b
+
+                    val encodeTypeItem = groupListView.createItemView("EncodeType")
+                    packetTypeItem.detailText = data.packetType.toString() // 密钥类型 00 01 02 对应（无密钥，defaultkey，sessionkey，）
+
+                    XUIGroupListView.newSection(context)
+                        .setTitle("包体信息")
+                        .addItemView(packetTypeItem, copyListener)
+                        .addItemView(encodeTypeItem, copyListener)
+                        .addTo(groupListView)
+                }
+
                 /*
-                 val packetTypeItem = groupListView.createItemView("PacketType")
-                packetTypeItem.detailText = data.packetType.toString()
-
-                XUIGroupListView.newSection(context)
-                    .setTitle("包体信息")
-
-                    .addItemView(packetTypeItem, copyListener)
-                    .addTo(groupListView)
-
-
                    from 的包体信息无法获取
                  */
                 return binding.root
