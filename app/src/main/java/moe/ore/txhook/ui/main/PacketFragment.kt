@@ -10,10 +10,14 @@ import android.view.View.VISIBLE
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import com.google.gson.Gson
 import com.xuexiang.xui.XUI
 import com.xuexiang.xui.widget.grouplist.XUICommonListItemView
 import com.xuexiang.xui.widget.grouplist.XUIGroupListView
 import com.xuexiang.xui.widget.textview.autofit.AutoFitTextView
+import moe.ore.tars.exc.TarsDecodeException
+import moe.ore.test.JceParser
+import moe.ore.test.JceParserError
 import moe.ore.txhook.databinding.FragmentCatchBinding
 import moe.ore.txhook.databinding.FragmentPacketAnayseBinding
 import moe.ore.txhook.databinding.FragmentPacketDataBinding
@@ -22,6 +26,8 @@ import moe.ore.txhook.datas.PacketInfoData
 import moe.ore.txhook.datas.ProtocolDatas
 import moe.ore.txhook.helper.toHexString
 import moe.ore.txhook.more.copyText
+import moe.ore.txhook.more.toast
+import java.lang.Exception
 import java.util.*
 
 class PacketFragment(private val sectionNumber: Int, private val data: PacketInfoData) : Fragment() {
@@ -89,7 +95,7 @@ class PacketFragment(private val sectionNumber: Int, private val data: PacketInf
                     packetTypeItem.detailText = data.packetType.toString() // 发包类型 有 0a 0b
 
                     val encodeTypeItem = groupListView.createItemView("EncodeType")
-                    packetTypeItem.detailText = data.packetType.toString() // 密钥类型 00 01 02 对应（无密钥，defaultkey，sessionkey，）
+                    packetTypeItem.detailText = data.encodeType.toString() // 密钥类型 00 01 02 对应（无密钥，defaultkey，sessionkey，）
 
                     XUIGroupListView.newSection(context)
                         .setTitle("包体信息")
@@ -135,16 +141,30 @@ class PacketFragment(private val sectionNumber: Int, private val data: PacketInf
                     binding.emptyView.visibility = VISIBLE
                 }
 
+
+                var isLogin = false
                 if (data.cmd.startsWith("wtlogin") || data.cmd.startsWith("wlogin")) {
                     binding.asPb.visibility = GONE
-                    binding.asJce.text = "作为登录包分析"
+                    binding.asJce.text = "特殊分析"
+                    isLogin = true
                 }
 
                 binding.asJce.setOnClickListener {
+                    if (isLogin) { // 特殊分析模式
 
+                    } else { // 普通分析jce
+                        try {
+                            // toast.show("开始分析")
+                            val parser = JceParser(data.buffer, 4)
+
+                        } catch (e: Exception) {
+                            toast.show("尝试作为Jce分析失败")
+                        }
+                    }
                 }
 
                 binding.asPb.setOnClickListener {
+
 
                 }
 

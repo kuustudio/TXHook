@@ -21,8 +21,6 @@ public class TarsBase implements Serializable {
     public static final byte ZERO_TAG = 12;
     public static final byte SIMPLE_LIST = 13;
 
-    public static final byte PROTOBUF_STRUCT = 99;
-
     public static final int MAX_STRING_LENGTH = 100 * 1024 * 1024;
 
     @NotNull

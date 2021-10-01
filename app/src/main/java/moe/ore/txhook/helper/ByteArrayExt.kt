@@ -35,7 +35,7 @@ fun ByteArray.toHexString(hasSpace: Boolean = false): String = this.joinToString
 
 fun ByteArray.xor(key: ByteArray): ByteArray {
     val result = ByteArray(this.size)
-    for (i in 0 until this.size) {
+    for (i in this.indices) {
         result[i] = (this[i] xor key[i % key.size] xor ((i and 0xFF).toByte()))
     }
     return result

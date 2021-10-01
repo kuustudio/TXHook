@@ -62,8 +62,10 @@ class PacketInfoData() : Parcelable {
         parcel.writeLong(time)
         parcel.writeInt(sessionSize)
         parcel.writeByteArray(sessionId)
+
         parcel.writeByte(encodeType)
         parcel.writeInt(packetType)
+
         parcel.writeInt(firstTokenSize)
         parcel.writeByteArray(firstToken)
         parcel.writeInt(secondTokenSize)
