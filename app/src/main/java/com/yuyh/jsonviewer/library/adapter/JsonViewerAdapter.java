@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.xuexiang.xui.XUI;
 import com.yuyh.jsonviewer.library.utils.Utils;
 import com.yuyh.jsonviewer.library.view.JsonItemView;
 
@@ -17,6 +18,8 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import java.util.Objects;
+
+import moe.ore.txhook.more.EasyAndroidKt;
 
 /**
  * Created by yuyuhang on 2017/11/29.
@@ -174,16 +177,18 @@ public class JsonViewerAdapter extends BaseJsonViewerAdapter<JsonViewerAdapter.J
     private void handleValue(Object value, JsonItemView itemView, boolean appendComma, int hierarchy) {
         SpannableStringBuilder valueBuilder = new SpannableStringBuilder();
         if (value instanceof Number) {
+            itemView.setOnClickListener(new JsonItemClickListener(value, itemView, appendComma, hierarchy + 1));
             valueBuilder.append(value.toString());
             valueBuilder.setSpan(new ForegroundColorSpan(NUMBER_COLOR), 0, valueBuilder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         } else if (value instanceof Boolean) {
+            itemView.setOnClickListener(new JsonItemClickListener(value, itemView, appendComma, hierarchy + 1));
             valueBuilder.append(value.toString());
             valueBuilder.setSpan(new ForegroundColorSpan(BOOLEAN_COLOR), 0, valueBuilder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         } else if (value instanceof JSONObject) {
             itemView.showIcon(true);
             valueBuilder.append("Object{...}");
             valueBuilder.setSpan(new ForegroundColorSpan(BRACES_COLOR), 0, valueBuilder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            itemView.setIconClickListener(new JsonItemClickListener(value, itemView, appendComma, hierarchy + 1));
+            itemView.setOnClickListener(new JsonItemClickListener(value, itemView, appendComma, hierarchy + 1));
         } else if (value instanceof JSONArray) {
             itemView.showIcon(true);
             valueBuilder.append("Array[").append(String.valueOf(((JSONArray) value).length())).append("]");
@@ -191,9 +196,16 @@ public class JsonViewerAdapter extends BaseJsonViewerAdapter<JsonViewerAdapter.J
             valueBuilder.setSpan(new ForegroundColorSpan(BRACES_COLOR), 0, 6, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             valueBuilder.setSpan(new ForegroundColorSpan(NUMBER_COLOR), 6, len - 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             valueBuilder.setSpan(new ForegroundColorSpan(BRACES_COLOR), len - 1, len, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            itemView.setIconClickListener(new JsonItemClickListener(value, itemView, appendComma, hierarchy + 1));
+            itemView.setOnClickListener(new JsonItemClickListener(value, itemView, appendComma, hierarchy + 1));
         } else if (value instanceof String) {
             itemView.hideIcon();
+
+            itemView.setOnClickListener(new JsonItemClickListener(value, itemView, appendComma, hierarchy + 1));
+
+            if (((String) value).startsWith("[hex]")) {
+                value = ((String) value).substring(5);
+            }
+
             valueBuilder.append("\"").append(value.toString()).append("\"");
             if (Utils.isUrl(value.toString())) {
                 valueBuilder.setSpan(new ForegroundColorSpan(TEXT_COLOR), 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -202,6 +214,7 @@ public class JsonViewerAdapter extends BaseJsonViewerAdapter<JsonViewerAdapter.J
             } else {
                 valueBuilder.setSpan(new ForegroundColorSpan(TEXT_COLOR), 0, valueBuilder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
+
         } else if (valueBuilder.length() == 0 || value == null) {
             itemView.hideIcon();
             valueBuilder.append("null");
@@ -216,61 +229,75 @@ public class JsonViewerAdapter extends BaseJsonViewerAdapter<JsonViewerAdapter.J
 
     class JsonItemClickListener implements View.OnClickListener {
 
-        private Object value;
-        private JsonItemView itemView;
-        private boolean appendComma;
-        private int hierarchy;
+        private final boolean isJsonObject;
+        private final Object value;
+        private final JsonItemView itemView;
+        private final boolean appendComma;
+        private final int hierarchy;
 
         private boolean isCollapsed = true;
-        private boolean isJsonArray;
+        private final boolean isJsonArray;
+
+        private boolean isHex;
 
         JsonItemClickListener(Object value, JsonItemView itemView, boolean appendComma, int hierarchy) {
             this.value = value;
             this.itemView = itemView;
             this.appendComma = appendComma;
             this.hierarchy = hierarchy;
-            this.isJsonArray = value != null && value instanceof JSONArray;
+            this.isJsonArray = value instanceof JSONArray;
+            this.isJsonObject = value instanceof JSONObject;
+            if (value instanceof String) {
+                this.isHex = ((String) value).startsWith("[hex]");
+            }
         }
 
         @Override
         public void onClick(View view) {
-            if (itemView.getChildCount() == 1) { // 初始（折叠） --> 展开""
-                isCollapsed = false;
-                itemView.showIcon(false);
-                itemView.setTag(itemView.getRightText());
-                itemView.showRight(isJsonArray ? "[" : "{");
-                JSONArray array = isJsonArray ? (JSONArray) value : ((JSONObject) value).names();
-                for (int i = 0; array != null && i < array.length(); i++) {
+            if (isHex) {
+                EasyAndroidKt.copyText(XUI.getContext(), ((String) value).substring(5));
+            } else if (isJsonObject || isJsonArray ){
+                if (itemView.getChildCount() == 1) { // 初始（折叠） --> 展开""
+                    isCollapsed = false;
+                    itemView.showIcon(false);
+                    itemView.setTag(itemView.getRightText());
+                    itemView.showRight(isJsonArray ? "[" : "{");
+                    JSONArray array = isJsonArray ? (JSONArray) value : ((JSONObject) value).names();
+                    for (int i = 0; array != null && i < array.length(); i++) {
+                        JsonItemView childItemView = new JsonItemView(itemView.getContext());
+                        childItemView.setTextSize(TEXT_SIZE_DP);
+                        childItemView.setRightColor(BRACES_COLOR);
+                        Object childValue = array.opt(i);
+                        if (isJsonArray) {
+                            handleJsonArray(childValue, childItemView, i < array.length() - 1, hierarchy);
+                        } else {
+                            handleJsonObject((String) childValue, ((JSONObject) value).opt((String) childValue), childItemView, i < array.length() - 1, hierarchy);
+                        }
+                        itemView.addViewNoInvalidate(childItemView);
+                    }
+
                     JsonItemView childItemView = new JsonItemView(itemView.getContext());
                     childItemView.setTextSize(TEXT_SIZE_DP);
                     childItemView.setRightColor(BRACES_COLOR);
-                    Object childValue = array.opt(i);
-                    if (isJsonArray) {
-                        handleJsonArray(childValue, childItemView, i < array.length() - 1, hierarchy);
-                    } else {
-                        handleJsonObject((String) childValue, ((JSONObject) value).opt((String) childValue), childItemView, i < array.length() - 1, hierarchy);
-                    }
+                    StringBuilder builder = new StringBuilder(Utils.getHierarchyStr(hierarchy - 1));
+                    builder.append(isJsonArray ? "]" : "}").append(appendComma ? "," : "");
+                    childItemView.showRight(builder);
                     itemView.addViewNoInvalidate(childItemView);
+                    itemView.requestLayout();
+                    itemView.invalidate();
+                } else {                            // 折叠 <--> 展开
+                    CharSequence temp = itemView.getRightText();
+                    itemView.showRight((CharSequence) itemView.getTag());
+                    itemView.setTag(temp);
+                    itemView.showIcon(!isCollapsed);
+                    for (int i = 1; i < itemView.getChildCount(); i++) {
+                        itemView.getChildAt(i).setVisibility(isCollapsed ? View.VISIBLE : View.GONE);
+                    }
+                    isCollapsed = !isCollapsed;
                 }
-
-                JsonItemView childItemView = new JsonItemView(itemView.getContext());
-                childItemView.setTextSize(TEXT_SIZE_DP);
-                childItemView.setRightColor(BRACES_COLOR);
-                StringBuilder builder = new StringBuilder(Utils.getHierarchyStr(hierarchy - 1));
-                builder.append(isJsonArray ? "]" : "}").append(appendComma ? "," : "");
-                childItemView.showRight(builder);
-                itemView.addViewNoInvalidate(childItemView);
-                itemView.requestLayout();
-                itemView.invalidate();
-            } else {                            // 折叠 <--> 展开
-                CharSequence temp = itemView.getRightText();
-                itemView.showRight((CharSequence) itemView.getTag());
-                itemView.setTag(temp);
-                itemView.showIcon(!isCollapsed);
-                for (int i = 1; i < itemView.getChildCount(); i++) {
-                    itemView.getChildAt(i).setVisibility(isCollapsed ? View.VISIBLE : View.GONE);
-                }
-                isCollapsed = !isCollapsed;
+            }
+            else {
+                EasyAndroidKt.copyText(XUI.getContext(), value.toString());
             }
         }
     }

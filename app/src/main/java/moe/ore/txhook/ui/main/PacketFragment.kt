@@ -11,10 +11,15 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.google.gson.Gson
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import com.xuexiang.xui.XUI
 import com.xuexiang.xui.widget.grouplist.XUICommonListItemView
 import com.xuexiang.xui.widget.grouplist.XUIGroupListView
 import com.xuexiang.xui.widget.textview.autofit.AutoFitTextView
+import com.yuyh.jsonviewer.library.JsonRecyclerView
+import moe.ore.tars.TarsBase.*
 import moe.ore.tars.exc.TarsDecodeException
 import moe.ore.test.JceParser
 import moe.ore.test.JceParserError
@@ -27,7 +32,10 @@ import moe.ore.txhook.datas.ProtocolDatas
 import moe.ore.txhook.helper.toHexString
 import moe.ore.txhook.more.copyText
 import moe.ore.txhook.more.toast
+import org.json.JSONArray
+import org.json.JSONObject
 import java.lang.Exception
+import java.lang.RuntimeException
 import java.util.*
 
 class PacketFragment(private val sectionNumber: Int, private val data: PacketInfoData) : Fragment() {
@@ -149,6 +157,8 @@ class PacketFragment(private val sectionNumber: Int, private val data: PacketInf
                     isLogin = true
                 }
 
+                binding.json.setTextSize(18f)
+
                 binding.asJce.setOnClickListener {
                     if (isLogin) { // 特殊分析模式
 
@@ -156,7 +166,12 @@ class PacketFragment(private val sectionNumber: Int, private val data: PacketInf
                         try {
                             // toast.show("开始分析")
                             val parser = JceParser(data.buffer, 4)
+                            setData(binding.json, Gson().toJson(parser.value))
 
+                            binding.dataView.visibility = VISIBLE
+                            binding.buttonView.visibility = GONE
+
+                            toast.show("分析成功")
                         } catch (e: Exception) {
                             toast.show("尝试作为Jce分析失败")
                         }
@@ -168,11 +183,66 @@ class PacketFragment(private val sectionNumber: Int, private val data: PacketInf
 
                 }
 
-
                 return binding.root
             }
         }
         return View(context)
+    }
+
+    private fun setData(view: JsonRecyclerView, json: String) {
+        val arr = JsonParser().parse(json).asJsonObject["values"].asJsonArray
+
+        view.bindJson(convertData(arr))
+    }
+
+    private fun convertData(arr: JsonArray): JSONObject {
+        val data = JSONObject()
+
+        arr.forEach {
+            val elem = it.asJsonObject
+            convertValue(data, elem)
+        }
+
+        return data
+    }
+
+    private fun convertValue(data: JSONObject, elem: JsonObject) {
+        val tag = elem["tag"].asInt
+        data.put(tag.toString(), convertValue(elem))
+    }
+
+    private fun convertValue(elem: JsonObject): Any {
+        return when(val type = elem["type"].asByte) {
+            LONG -> elem["number"].asLong
+            DOUBLE -> elem["double"].asDouble
+            STRING1 -> elem["string"].asString
+            SIMPLE_LIST -> "[hex]" + elem["string"].asString
+            STRUCT_BEGIN -> {
+                val ar = JsonParser().parse(elem["json"].asString).asJsonObject["values"].asJsonArray
+                val out = convertData(ar)
+                out
+            }
+            LIST -> {
+                val `in` = JSONObject()
+                val ar = JsonParser().parse(elem["json"].asString).asJsonArray
+                ar.forEach {
+                    val e = it.asJsonObject
+                    convertValue(`in`, e)
+                }
+                `in`
+            }
+            MAP -> {
+                val out = JSONObject()
+                val j = JsonParser().parse(elem["json"].asString).asJsonObject
+                j.entrySet().forEach {
+                    val key = it.key
+                    val value = it.value.asJsonObject
+                    out.put(key, convertValue(value))
+                }
+                out
+            }
+            else -> throw RuntimeException("unknown type: $type")
+        }
     }
 
     companion object {

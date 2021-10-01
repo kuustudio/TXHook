@@ -22,7 +22,7 @@ class JceParser
             data
         else data.sub(pos, data.size - pos).let { it ?: throw JceParserError.OFFSET_POS_ERROR }
 
-    val value = parserByReader(buffer.toByteReadPacket())
+    val value: JceValues = parserByReader(buffer.toByteReadPacket())
 
     // @Throws(JceParserError::class)
     private fun parserByReader(reader: ByteReadPacket): JceValues {
@@ -259,6 +259,7 @@ class JceParser
 
                             objects.add(key, Gson().toJsonTree(value))
                         }
+
                         this.json = objects.toString()
 
                     })
