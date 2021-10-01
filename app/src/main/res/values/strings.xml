@@ -17,4 +17,6 @@
     <string name="as_protobuf">作为Protobuf分析</string>
     <string name="as_tars">作为Jce分析</string>
 
+    <string name="jsonViewer_icon_plus">expand</string>
+    <string name="jsonViewer_icon_minus">collapse</string>
 </resources>
