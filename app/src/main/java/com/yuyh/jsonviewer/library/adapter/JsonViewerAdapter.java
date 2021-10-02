@@ -25,6 +25,7 @@ import org.json.JSONTokener;
 
 import java.util.Objects;
 
+import moe.ore.test.ProtobufParser;
 import moe.ore.test.TarsParser;
 import moe.ore.txhook.JsonViewActivity;
 import moe.ore.txhook.app.TXApp;
@@ -272,8 +273,9 @@ public class JsonViewerAdapter extends BaseJsonViewerAdapter<JsonViewerAdapter.J
                 }
                 new MaterialDialog.Builder(view.getContext())
                         .title(subV)
-                        .items("复制内容", "作为JCE分析", "作为PB分析")
+                        .items("复制内容", "作为JCE分析", "作为PB分析", "转字符串")
                         .itemsCallback((dialog, itemView, position, text) -> {
+                            dialog.dismiss();
                             switch (position) {
                                 case 0:
                                     EasyAndroidKt.copyText(XUI.getContext(), v);
@@ -294,10 +296,36 @@ public class JsonViewerAdapter extends BaseJsonViewerAdapter<JsonViewerAdapter.J
                                     }
                                     break;
                                 case 2:
+                                    try {
+                                        ProtobufParser parser = new ProtobufParser(HexUtil.Hex2Bin(v));
 
+                                        Intent intent = new Intent(view.getContext(), JsonViewActivity.class);
+                                        intent.putExtra("data", parser.startParsing().toString());
+                                        view.getContext().startActivity(intent);
+
+                                        Toast.makeText(view.getContext(), "分析成功", Toast.LENGTH_SHORT).show();
+
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                        Toast.makeText(view.getContext(), "尝试作为Pb分析失败", Toast.LENGTH_SHORT).show();
+                                    }
+                                    break;
+                                case 3:
+                                    String str = new String(HexUtil.Hex2Bin(v));
+                                    new MaterialDialog.Builder(view.getContext())
+                                            .content(str)
+                                            .positiveText("复制")
+                                            .onPositive((d2, which) -> {
+                                                d2.dismiss();
+                                                EasyAndroidKt.copyText(XUI.getContext(), str);
+                                            })
+                                            .negativeText("取消")
+                                            .onNegative((d2, which) -> {
+                                                d2.dismiss();
+                                            })
+                                            .show();
                                     break;
                             }
-                            dialog.dismiss();
                         })
                         .show();
             } else if (isJsonObject || isJsonArray ){

@@ -14,6 +14,7 @@ import com.xuexiang.xui.widget.grouplist.XUICommonListItemView
 import com.xuexiang.xui.widget.grouplist.XUIGroupListView
 import com.xuexiang.xui.widget.textview.autofit.AutoFitTextView
 import moe.ore.tars.TarsBase.*
+import moe.ore.test.ProtobufParser
 import moe.ore.test.TarsParser
 import moe.ore.txhook.databinding.FragmentPacketAnayseBinding
 import moe.ore.txhook.databinding.FragmentPacketDataBinding
@@ -154,7 +155,7 @@ class PacketFragment(private val sectionNumber: Int, private val data: PacketInf
                             // toast.show("开始分析")
                             val parser = TarsParser(data.buffer, 4)
 
-                            binding.json.bindJson(parser.startParsing().toString())
+                            binding.json.bindJson(parser.startParsing())
 
                             binding.dataView.visibility = VISIBLE
                             binding.buttonView.visibility = GONE
@@ -168,8 +169,20 @@ class PacketFragment(private val sectionNumber: Int, private val data: PacketInf
                 }
 
                 binding.asPb.setOnClickListener {
+                    try {
+                        // toast.show("开始分析")
+                        val parser = ProtobufParser(data.buffer, 4)
 
+                        binding.json.bindJson(parser.startParsing())
 
+                        binding.dataView.visibility = VISIBLE
+                        binding.buttonView.visibility = GONE
+
+                        toast.show("分析成功")
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        toast.show("尝试作为Pb分析失败")
+                    }
                 }
 
                 return binding.root
