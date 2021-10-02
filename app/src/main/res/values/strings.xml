@@ -19,4 +19,5 @@
 
     <string name="jsonViewer_icon_plus">expand</string>
     <string name="jsonViewer_icon_minus">collapse</string>
+    <string name="one_anayse">一键分析</string>
 </resources>

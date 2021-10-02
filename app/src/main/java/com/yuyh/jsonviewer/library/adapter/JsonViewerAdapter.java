@@ -1,14 +1,20 @@
 package com.yuyh.jsonviewer.library.adapter;
 
+import android.content.Intent;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.gson.Gson;
 import com.xuexiang.xui.XUI;
+import com.xuexiang.xui.widget.dialog.materialdialog.DialogAction;
+import com.xuexiang.xui.widget.dialog.materialdialog.MaterialDialog;
 import com.yuyh.jsonviewer.library.utils.Utils;
 import com.yuyh.jsonviewer.library.view.JsonItemView;
 
@@ -19,6 +25,10 @@ import org.json.JSONTokener;
 
 import java.util.Objects;
 
+import moe.ore.test.TarsParser;
+import moe.ore.txhook.JsonViewActivity;
+import moe.ore.txhook.app.TXApp;
+import moe.ore.txhook.helper.HexUtil;
 import moe.ore.txhook.more.EasyAndroidKt;
 
 /**
@@ -255,7 +265,41 @@ public class JsonViewerAdapter extends BaseJsonViewerAdapter<JsonViewerAdapter.J
         @Override
         public void onClick(View view) {
             if (isHex) {
-                EasyAndroidKt.copyText(XUI.getContext(), ((String) value).substring(5));
+                String v = ((String) value).substring(5);
+                String subV = v;
+                if (subV.length() > 12) {
+                    subV = v.substring(0, 12) + "...";
+                }
+                new MaterialDialog.Builder(view.getContext())
+                        .title(subV)
+                        .items("复制内容", "作为JCE分析", "作为PB分析")
+                        .itemsCallback((dialog, itemView, position, text) -> {
+                            switch (position) {
+                                case 0:
+                                    EasyAndroidKt.copyText(XUI.getContext(), v);
+                                    break;
+                                case 1:
+                                    try {
+                                        TarsParser parser = new TarsParser(HexUtil.Hex2Bin(v));
+
+                                        Intent intent = new Intent(view.getContext(), JsonViewActivity.class);
+                                        intent.putExtra("data", parser.startParsing().toString());
+                                        view.getContext().startActivity(intent);
+
+                                        Toast.makeText(view.getContext(), "分析成功", Toast.LENGTH_SHORT).show();
+
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                        Toast.makeText(view.getContext(), "尝试作为Jce分析失败", Toast.LENGTH_SHORT).show();
+                                    }
+                                    break;
+                                case 2:
+
+                                    break;
+                            }
+                            dialog.dismiss();
+                        })
+                        .show();
             } else if (isJsonObject || isJsonArray ){
                 if (itemView.getChildCount() == 1) { // 初始（折叠） --> 展开""
                     isCollapsed = false;
@@ -297,13 +341,24 @@ public class JsonViewerAdapter extends BaseJsonViewerAdapter<JsonViewerAdapter.J
                 }
             }
             else {
-                EasyAndroidKt.copyText(XUI.getContext(), value.toString());
+                String v = value.toString();
+                new MaterialDialog.Builder(view.getContext())
+                        .content(v)
+                        .positiveText("复制")
+                        .onPositive((dialog, which) -> {
+                            dialog.dismiss();
+                            EasyAndroidKt.copyText(XUI.getContext(), v);
+                        })
+                        .negativeText("取消")
+                        .onNegative((dialog, which) -> {
+                            dialog.dismiss();
+                        })
+                        .show();
             }
         }
     }
 
-    class JsonItemViewHolder extends RecyclerView.ViewHolder {
-
+    static class JsonItemViewHolder extends RecyclerView.ViewHolder {
         JsonItemView itemView;
 
         JsonItemViewHolder(JsonItemView itemView) {

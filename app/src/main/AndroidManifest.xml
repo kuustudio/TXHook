@@ -33,6 +33,11 @@
             android:screenOrientation="behind"
             />
 
+        <activity
+            android:name=".JsonViewActivity"
+            android:screenOrientation="behind"
+            />
+
         <meta-data
             android:name="xposedmodule"
             android:value="true" />
