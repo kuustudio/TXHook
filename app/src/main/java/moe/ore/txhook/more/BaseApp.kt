@@ -46,11 +46,6 @@ class Config: PreferenceSupport() {
     是否开启跳转页面刷新
      */
     var changeViewRefresh: Boolean = false
-
-    /*
-    自动转换Sso.LoginMerge包为正常包
-     */
-    var autoSsoLoginMerge: Boolean = false
 }
 
 object ActivityLifeListener: Application.ActivityLifecycleCallbacks {

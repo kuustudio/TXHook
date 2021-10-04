@@ -60,9 +60,11 @@ class MainActivity : BaseActivity() {
         })
 
         binding.deleteAll.setOnClickListener {
+
             ProtocolDatas.clearService()
             toast.show("清理成功")
             changeContent()
+
         }
 
         tabs.setupWithViewPager(viewPager)
@@ -95,13 +97,20 @@ class MainActivity : BaseActivity() {
             override fun onPageScrollStateChanged(state: Int) {}
             override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {}
             override fun onPageSelected(position: Int) {
-                if (position == 0) {
-                    if (config.changeViewRefresh) changeContent() // 不点击自动触发
-                    fab.show()
-                    binding.deleteAll.visibility = VISIBLE
-                } else {
-                    binding.deleteAll.visibility = INVISIBLE
-                    fab.hide()
+                when (position) {
+                    0 -> {
+                        if (config.changeViewRefresh) changeContent() // 不点击自动触发
+                        fab.show()
+                        binding.deleteAll.visibility = VISIBLE
+                    }
+                    1 -> {
+                        binding.deleteAll.visibility = VISIBLE
+                        fab.hide()
+                    }
+                    else -> {
+                        fab.hide()
+                        binding.deleteAll.visibility = INVISIBLE
+                    }
                 }
             }
         })
