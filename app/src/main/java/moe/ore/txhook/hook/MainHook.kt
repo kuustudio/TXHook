@@ -7,6 +7,9 @@ import de.robv.android.xposed.XposedBridge.log
 import de.robv.android.xposed.XposedHelpers
 import kotlinx.io.core.discardExact
 import kotlinx.io.core.readBytes
+import kotlinx.serialization.decodeFromByteArray
+import kotlinx.serialization.protobuf.ProtoBuf
+import moe.ore.protobuf.SSOLoginMerge
 import moe.ore.txhook.catching.FromService
 import moe.ore.txhook.catching.FromSource
 import moe.ore.txhook.catching.ToService
@@ -113,7 +116,6 @@ object MainHook {
         ProtocolDatas.setQIMEI(JavaCaster.castToBytes(oicqUtilClz!!.callMethod("get_qimei", ctx)))
         ProtocolDatas.setGUID(JavaCaster.castToBytes(oicqUtilClz.callMethod("generateGuid", ctx)))
         ProtocolDatas.setKsid(JavaCaster.castToBytes(oicqUtilClz.callMethod("get_ksid", ctx)))
-        ProtocolDatas.setKsid(JavaCaster.castToBytes(oicqUtilClz.callMethod("get_ksid", ctx)))
         ProtocolDatas.setWloginLogDir(oicqUtilClz.callMethod("getLogDir", ctx) as? String)
         ProtocolDatas.setSVNVersion(oicqUtilClz.callMethod("getSvnVersion") as? String)
         ProtocolDatas.setReleaseTime(oicqUtilClz.callMethod("get_release_time") as? String)
@@ -126,6 +128,7 @@ object MainHook {
 
     private fun hookReceivePacket(fromSource: FromSource, clazz: Class<*>) {
         clazz.hookMethod("onResponse")?.after { param ->
+            val setting = ProtocolDatas.getSetting()
             val fromObject = param.args[1]
 
             val buf = JavaCaster.castToBytes(XposedHelpers.callMethod(fromObject, "getWupBuffer")) ?: EMPTY_BYTE_ARRAY
@@ -134,7 +137,12 @@ object MainHook {
             val ssoSeq = (XposedHelpers.callMethod(fromObject, "getRequestSsoSeq") as? Int) ?: 0
             val msgCookie = JavaCaster.castToBytes(XposedHelpers.callMethod(fromObject, "getMsgCookie")) ?: EMPTY_BYTE_ARRAY
 
-            ProtocolDatas.addService(FromService(fromSource, qq.toLong(), ssoSeq, command, buf, System.currentTimeMillis(), msgCookie))
+            if ("SSO.LoginMerge" == command && setting.autoSsoLoginMerge) {
+                val data = ProtoBuf.decodeFromByteArray(SSOLoginMerge.BusiBuffData.serializer(), buf.sub(4, buf.size - 4)!!)
+                data.buffList?.forEach {
+                    ProtocolDatas.addService(FromService(fromSource, qq.toLong(), it.seq, it.cmd, it.data, System.currentTimeMillis(), msgCookie))
+                }
+            } else ProtocolDatas.addService(FromService(fromSource, qq.toLong(), ssoSeq, command, buf, System.currentTimeMillis(), msgCookie))
         }
     }
 
@@ -153,8 +161,8 @@ object MainHook {
                     val buffer = param.args[15] as ByteArray
                     // val out = param.result as ByteArray
 
+                    val setting = ProtocolDatas.getSetting()
                     val to = ToService(fromSource, uin.toLong(), seq, cmd, buffer, System.currentTimeMillis(), sessionId)
-
                     fastTry {
                         result.toByteReadPacket().use {
                             it.discardExact(4) // 去掉4字节的长度
@@ -163,8 +171,17 @@ object MainHook {
                         }
                         // to.firstToken = reader.readBytes(reader.readInt() -  4)
                     }
-
-                    ProtocolDatas.addService(to)
+                    if (cmd == "SSO.LoginMerge" && setting.autoSsoLoginMerge) {
+                        var buf = buffer.sub(4, buffer.size - 4)!!
+                        if (buf.first() == 0x78.toByte()) buf = ZipUtil.unCompress(buf) // 被压缩 -> 解压缩
+                        val data = ProtoBuf.decodeFromByteArray<SSOLoginMerge.BusiBuffData>(buf)
+                        data.buffList?.forEach {
+                            ProtocolDatas.addService(ToService(fromSource, uin.toLong(), it.seq, it.cmd, it.data, System.currentTimeMillis(), sessionId).apply {
+                                packetType = to.packetType
+                                encodeType = to.encodeType
+                            })
+                        }
+                    } else ProtocolDatas.addService(to)
                 }
                 14 -> {
                     val seq = param.args[0] as Int
@@ -177,20 +194,27 @@ object MainHook {
                     val buffer = param.args[12] as ByteArray
                     // val out = param.result as ByteArray
 
+                    val setting = ProtocolDatas.getSetting()
                     val to = ToService(fromSource, uin.toLong(), seq, cmd, buffer, System.currentTimeMillis(), sessionId)
-
                     fastTry {
-                        val reader = result.toByteReadPacket()
-                        reader.discardExact(4) // 去掉4字节的长度
-                        to.packetType = reader.readInt()
-                        to.encodeType = reader.readByte()
-
+                        result.toByteReadPacket().use {
+                            it.discardExact(4) // 去掉4字节的长度
+                            to.packetType = it.readInt()
+                            to.encodeType = it.readByte()
+                        }
                         // to.firstToken = reader.readBytes(reader.readInt() -  4)
-
-                        reader.closeQuietly()
                     }
-
-                    ProtocolDatas.addService(to)
+                    if (cmd == "SSO.LoginMerge" && setting.autoSsoLoginMerge) {
+                        var buf = buffer.sub(4, buffer.size - 4)!!
+                        if (buf.first() == 0x78.toByte()) buf = ZipUtil.unCompress(buf) // 被压缩 -> 解压缩
+                        val data = ProtoBuf.decodeFromByteArray<SSOLoginMerge.BusiBuffData>(buf)
+                        data.buffList?.forEach {
+                            ProtocolDatas.addService(ToService(fromSource, uin.toLong(), it.seq, it.cmd, it.data, System.currentTimeMillis(), sessionId).apply {
+                                packetType = to.packetType
+                                encodeType = to.encodeType
+                            })
+                        }
+                    } else ProtocolDatas.addService(to)
                 }
                 16 -> {
                     val seq = param.args[0] as Int
@@ -203,20 +227,27 @@ object MainHook {
                     val buffer = param.args[14] as ByteArray
                     // val out = param.result as ByteArray
 
+                    val setting = ProtocolDatas.getSetting()
                     val to = ToService(fromSource, uin.toLong(), seq, cmd, buffer, System.currentTimeMillis(), sessionId)
-
                     fastTry {
-                        val reader = result.toByteReadPacket()
-                        reader.discardExact(4) // 去掉4字节的长度
-                        to.packetType = reader.readInt()
-                        to.encodeType = reader.readByte()
-
+                        result.toByteReadPacket().use {
+                            it.discardExact(4) // 去掉4字节的长度
+                            to.packetType = it.readInt()
+                            to.encodeType = it.readByte()
+                        }
                         // to.firstToken = reader.readBytes(reader.readInt() -  4)
-
-                        reader.closeQuietly()
                     }
-
-                    ProtocolDatas.addService(to)
+                    if (cmd == "SSO.LoginMerge" && setting.autoSsoLoginMerge) {
+                        var buf = buffer.sub(4, buffer.size - 4)!!
+                        if (buf.first() == 0x78.toByte()) buf = ZipUtil.unCompress(buf) // 被压缩 -> 解压缩
+                        val data = ProtoBuf.decodeFromByteArray<SSOLoginMerge.BusiBuffData>(buf)
+                        data.buffList?.forEach {
+                            ProtocolDatas.addService(ToService(fromSource, uin.toLong(), it.seq, it.cmd, it.data, System.currentTimeMillis(), sessionId).apply {
+                                packetType = to.packetType
+                                encodeType = to.encodeType
+                            })
+                        }
+                    } else ProtocolDatas.addService(to)
                 }
                 else -> {
                     log("hook到了个不知道什么东西")

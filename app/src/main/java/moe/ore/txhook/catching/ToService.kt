@@ -3,13 +3,13 @@ package moe.ore.txhook.catching
 import moe.ore.txhook.helper.EMPTY_BYTE_ARRAY
 
 data class ToService(
-    val fromSource: FromSource,
-    val uin: Long,
-    val seq: Int,
-    val cmd: String,
-    val buffer: ByteArray,
-    val time: Long,
-    val sessionId: ByteArray,
+    var fromSource: FromSource,
+    var uin: Long,
+    var seq: Int,
+    var cmd: String,
+    var buffer: ByteArray,
+    var time: Long,
+    var sessionId: ByteArray,
 ): PacketService(false, true) {
     var encodeType: Byte = 0
     var packetType: Int = 0

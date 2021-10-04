@@ -40,6 +40,12 @@ object ProtocolDatas {
         }.readBytes()
     }
 
+    fun setSetting(key: HookSetting) = setId("setting", key.toByteArray())
+
+    fun getSetting(): HookSetting = HookSetting().also {
+        it.readFrom(TarsInputStream(getId("setting")))
+    }
+
     fun emptyKeyList() = setKeyList(KeyList())
 
     fun setKeyList(key: KeyList) = setId("key_list", key.toByteArray())

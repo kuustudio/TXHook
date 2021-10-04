@@ -296,6 +296,15 @@ class PlaceholderFragment(private val sectionNumber: Int) : Fragment() {
                     toast.show("修改为：${config.changeViewRefresh}")
                 }
 
+                val autoLoginMerge = group.createItemView("自动翻译Sso.LoginMerge")
+                autoLoginMerge.accessoryType = ACCESSORY_TYPE_SWITCH
+                autoLoginMerge.switch.isChecked = ProtocolDatas.getSetting().autoSsoLoginMerge
+                autoLoginMerge.switch.setOnCheckedChangeListener { _, isChecked ->
+                    val setting = ProtocolDatas.getSetting()
+                    setting.autoSsoLoginMerge = isChecked
+                    ProtocolDatas.setSetting(setting)
+                }
+
                 XUIGroupListView.newSection(context)
                     .setTitle("基础设置")
                     .addItemView(maxPacketSizeItem) {
@@ -319,7 +328,7 @@ class PlaceholderFragment(private val sectionNumber: Int) : Fragment() {
                             .show()
                     }
                     .addItemView(changeViewRefreshItem, null)
-
+                    .addItemView(autoLoginMerge, null)
                     .addTo(group)
 
                 return binding.root
