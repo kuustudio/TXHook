@@ -209,7 +209,11 @@ object ProtocolDatas {
                     val f2t = f2.lastModified()
                     // val f1Seq = f1.name.split(".")[0].toInt()
                     // val f2Seq = f2.name.split(".")[0].toInt()
-                    return@Comparator if (f1t > f2t) -1 else if (f2t > f1t) 1 else 0
+
+                    val f1To = f1.name.endsWith("to")
+                    // val f2To = f2.name.endsWith("to")
+
+                    return@Comparator if (f1t > f2t) -1 else if (f2t > f1t) 1 else if (f1To) 1 else -1 // 优先发包在上
                 })
 
                 sortList.forEach {
