@@ -128,6 +128,11 @@ object ProtocolDatas {
                 this.buffer = from.buffer
                 this.time = from.time
                 this.sessionId = from.sessionId
+
+                this.encodeType = from.encodeType
+                this.packetType = from.packetType
+                // this.firstToken = from.firstToken
+                // this.secondToken = from.secondToken
             }.toByteArray())
             setId("last_uin", from.uin.toString().toByteArray())
         } else {
@@ -140,6 +145,11 @@ object ProtocolDatas {
                 this.buffer = to.buffer
                 this.time = to.time
                 this.sessionId = to.sessionId
+
+                this.encodeType = to.encodeType
+                this.packetType = to.packetType
+                this.firstToken = to.firstToken
+                this.secondToken = to.secondToken
             }.toByteArray())
             setId("last_uin", to.uin.toString().toByteArray())
         }
@@ -270,6 +280,10 @@ class Packet: TarsBase() {
         output.write(time, 5)
         output.write(sessionId, 6)
         // output.write(fromSource, 1)
+        output.write(encodeType, 6)
+        output.write(packetType, 7)
+        output.write(firstToken, 8)
+        output.write(secondToken, 9)
     }
 
     override fun readFrom(input: TarsInputStream) {
@@ -281,6 +295,10 @@ class Packet: TarsBase() {
         time = input.read(time, 5, false)
         sessionId = input.read(sessionId, 6, false)
         // uin = input.read(uin, 1, false)
+        encodeType = input.read(encodeType, 6, false)
+        packetType = input.read(packetType, 7, false)
+        firstToken = input.read(firstToken, 8, false)
+        secondToken = input.read(secondToken, 9, false)
     }
 
     fun parse(byteArray: ByteArray): Packet {

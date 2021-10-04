@@ -32,11 +32,25 @@ open class BaseApp: Application() {
 
 @PreferenceRename("txhook_config")
 class Config: PreferenceSupport() {
+    /*
+    是否已经初始化
+     */
     var isFirst: Boolean = false
 
+    /*
+    抓包界面显示最大包数量
+     */
     var maxPacketSize: Int = 600
 
+    /*
+    是否开启跳转页面刷新
+     */
     var changeViewRefresh: Boolean = false
+
+    /*
+    自动转换Sso.LoginMerge包为正常包
+     */
+    var autoSsoLoginMerge: Boolean = false
 }
 
 object ActivityLifeListener: Application.ActivityLifecycleCallbacks {

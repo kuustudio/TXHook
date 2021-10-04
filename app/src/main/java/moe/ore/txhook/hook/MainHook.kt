@@ -156,14 +156,12 @@ object MainHook {
                     val to = ToService(fromSource, uin.toLong(), seq, cmd, buffer, System.currentTimeMillis(), sessionId)
 
                     fastTry {
-                        val reader = result.toByteReadPacket()
-                        reader.discardExact(4) // 去掉4字节的长度
-                        to.packetType = reader.readInt()
-                        to.encodeType = reader.readByte()
-
+                        result.toByteReadPacket().use {
+                            it.discardExact(4) // 去掉4字节的长度
+                            to.packetType = it.readInt()
+                            to.encodeType = it.readByte()
+                        }
                         // to.firstToken = reader.readBytes(reader.readInt() -  4)
-
-                        reader.closeQuietly()
                     }
 
                     ProtocolDatas.addService(to)
