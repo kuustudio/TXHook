@@ -59,14 +59,6 @@ class MainActivity : BaseActivity() {
             if (it.size >= config.maxPacketSize + 10) it.slice(0 .. config.maxPacketSize) else it
         })
 
-        binding.deleteAll.setOnClickListener {
-
-            ProtocolDatas.clearService()
-            toast.show("清理成功")
-            changeContent()
-
-        }
-
         tabs.setupWithViewPager(viewPager)
         val fab: FloatingActionButton = binding.fab
 
@@ -93,6 +85,7 @@ class MainActivity : BaseActivity() {
 
             } */
         } }
+
         viewPager.addOnPageChangeListener(object :ViewPager.OnPageChangeListener {
             override fun onPageScrollStateChanged(state: Int) {}
             override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {}
@@ -114,6 +107,22 @@ class MainActivity : BaseActivity() {
                 }
             }
         })
+
+        binding.deleteAll.setOnClickListener {
+            when (viewPager.currentItem) {
+                0 -> {
+                    ProtocolDatas.clearService()
+                    toast.show("抓包数据清理成功")
+                    changeContent()
+                }
+                1 -> {
+                    ProtocolDatas.emptyKeyList()
+                    toast.show("KEYS清理成功")
+                }
+            }
+
+
+        }
 
         inputActivity()
     }
