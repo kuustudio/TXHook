@@ -27,6 +27,12 @@ import moe.ore.txhook.ui.main.SectionsPagerAdapter
 
 import moe.ore.txhook.datas.ProtocolDatas
 import java.util.concurrent.atomic.AtomicBoolean
+import android.view.animation.Animation
+
+import android.view.animation.TranslateAnimation
+
+
+
 
 class MainActivity : BaseActivity() {
     // private var isCatching: Boolean = false
@@ -86,7 +92,26 @@ class MainActivity : BaseActivity() {
             } */
         } }
 
+        val deleteAllButton = binding.deleteAll
         viewPager.addOnPageChangeListener(object :ViewPager.OnPageChangeListener {
+            private var mHiddenAction: TranslateAnimation = TranslateAnimation(
+                Animation.RELATIVE_TO_SELF,
+                0.0f, Animation.RELATIVE_TO_SELF, 0.0f,
+                Animation.RELATIVE_TO_SELF, 0.0f, Animation.RELATIVE_TO_SELF,
+                -1.0f
+            )
+            private var mShowAction: TranslateAnimation = TranslateAnimation(
+                Animation.RELATIVE_TO_SELF, 0.0f,
+                Animation.RELATIVE_TO_SELF, 0.0f, Animation.RELATIVE_TO_SELF,
+                -1.0f, Animation.RELATIVE_TO_SELF, -0.0f
+            )
+
+            init {
+                mShowAction.repeatMode = Animation.REVERSE
+                mShowAction.duration = 500
+                mHiddenAction.duration = 500
+            }
+
             override fun onPageScrollStateChanged(state: Int) {}
             override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {}
             override fun onPageSelected(position: Int) {
@@ -94,21 +119,33 @@ class MainActivity : BaseActivity() {
                     0 -> {
                         if (config.changeViewRefresh) changeContent() // 不点击自动触发
                         fab.show()
-                        binding.deleteAll.visibility = VISIBLE
+                        if (deleteAllButton.visibility == INVISIBLE) {
+                            deleteAllButton.clearAnimation()
+                            deleteAllButton.startAnimation(mShowAction)
+                            deleteAllButton.visibility = VISIBLE
+                        }
                     }
                     1 -> {
-                        binding.deleteAll.visibility = VISIBLE
+                        if (deleteAllButton.visibility == INVISIBLE) {
+                            deleteAllButton.clearAnimation()
+                            deleteAllButton.startAnimation(mShowAction)
+                            deleteAllButton.visibility = VISIBLE
+                        }
                         fab.hide()
                     }
                     else -> {
                         fab.hide()
-                        binding.deleteAll.visibility = INVISIBLE
+                        if (deleteAllButton.visibility == VISIBLE) {
+                            deleteAllButton.clearAnimation()
+                            deleteAllButton.startAnimation(mHiddenAction)
+                            deleteAllButton.visibility = INVISIBLE
+                        }
                     }
                 }
             }
         })
 
-        binding.deleteAll.setOnClickListener {
+        deleteAllButton.setOnClickListener {
             when (viewPager.currentItem) {
                 0 -> {
                     ProtocolDatas.clearService()
