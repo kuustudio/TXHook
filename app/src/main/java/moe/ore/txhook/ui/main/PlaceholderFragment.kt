@@ -2,11 +2,11 @@ package moe.ore.txhook.ui.main
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.xuexiang.xui.XUI
@@ -15,6 +15,7 @@ import com.xuexiang.xui.widget.dialog.materialdialog.MaterialDialog
 import com.xuexiang.xui.widget.dialog.materialdialog.MaterialDialog.ListCallback
 import com.xuexiang.xui.widget.dialog.materialdialog.MaterialDialog.SingleButtonCallback
 import com.xuexiang.xui.widget.grouplist.XUICommonListItemView
+import com.xuexiang.xui.widget.grouplist.XUICommonListItemView.ACCESSORY_TYPE_CHEVRON
 import com.xuexiang.xui.widget.grouplist.XUIGroupListView
 import kotlinx.io.core.discardExact
 import kotlinx.io.core.readBytes
@@ -27,6 +28,7 @@ import moe.ore.txhook.catching.FromSource
 import moe.ore.txhook.catching.PacketService
 import moe.ore.txhook.databinding.FragmentCatchBinding
 import moe.ore.txhook.databinding.FragmentDataBinding
+import moe.ore.txhook.databinding.FragmentSettingBinding
 import moe.ore.txhook.datas.PacketInfoData
 import moe.ore.txhook.datas.ProtocolDatas
 import moe.ore.txhook.helper.BytesUtil
@@ -43,7 +45,9 @@ import okhttp3.internal.filterList
 import java.lang.Exception
 import java.util.*
 import kotlin.math.max
-
+import android.widget.Toast
+import com.xuexiang.xui.widget.grouplist.XUICommonListItemView.ACCESSORY_TYPE_SWITCH
+import moe.ore.txhook.R
 
 /**
  * A placeholder fragment containing a simple view.
@@ -269,6 +273,54 @@ class PlaceholderFragment(private val sectionNumber: Int) : Fragment() {
                     .addItemView(netTypeItem, copyListener)
                     .addItemView(logDirItem, copyListener)
                     .addTo(groupListView)
+
+                return binding.root
+            }
+            4 -> {
+                val binding = FragmentSettingBinding.inflate(inflater, container, false)
+
+                val group = binding.groupListView
+
+                config.changeViewRefresh
+
+                val maxPacketSizeItem = group.createItemView("最大包展示大小")
+                maxPacketSizeItem.detailText = config.maxPacketSize.toString()
+                maxPacketSizeItem.accessoryType = ACCESSORY_TYPE_CHEVRON
+
+                val changeViewRefreshItem = group.createItemView("切换界面自动刷新(卡顿)")
+                changeViewRefreshItem.accessoryType = ACCESSORY_TYPE_SWITCH
+                changeViewRefreshItem.switch.isChecked = config.changeViewRefresh
+                changeViewRefreshItem.switch.setOnCheckedChangeListener { _, isChecked ->
+                    config.changeViewRefresh = isChecked
+                    config.apply()
+                    toast.show("修改为：${config.changeViewRefresh}")
+                }
+
+                XUIGroupListView.newSection(context)
+                    .setTitle("基础设置")
+                    .addItemView(maxPacketSizeItem) {
+                        MaterialDialog.Builder(requireContext())
+                            .iconRes(R.drawable.ic_baseline_edit_note_24)
+                            .title("请输入修改后的值")
+                            .content("取值范围在0~2000之间，切记不要设置的过大！")
+                            .inputType(InputType.TYPE_CLASS_NUMBER)
+                            .input("请输入一个数字", "", false, (MaterialDialog.InputCallback { _: MaterialDialog?, text: CharSequence ->
+                                val num = text.toString().toInt()
+                                config.maxPacketSize = num
+                                config.apply()
+                                maxPacketSizeItem.detailText = text
+                                toast.show("修改成功~")
+                            }))
+                            .inputRange(1, 4)
+                            .positiveText("确定")
+                            .negativeText("取消")
+                            .onPositive((SingleButtonCallback { dialog: MaterialDialog, _: DialogAction? -> dialog.dismiss() }))
+                            .cancelable(false)
+                            .show()
+                    }
+                    .addItemView(changeViewRefreshItem, null)
+
+                    .addTo(group)
 
                 return binding.root
             }
