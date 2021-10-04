@@ -40,6 +40,14 @@ object ProtocolDatas {
         }.readBytes()
     }
 
+    fun emptyKeyList() = setKeyList(KeyList())
+
+    fun setKeyList(key: KeyList) = setId("key_list", key.toByteArray())
+
+    fun getKeyList(): KeyList = KeyList().also {
+        it.readFrom(TarsInputStream(getId("key_list")))
+    }
+
     fun setNetType(key: Int) = setId("net_type", key.toString().toByteArray())
 
     fun getNetType(): Int = String(getId("net_type")).let {
@@ -95,17 +103,9 @@ object ProtocolDatas {
         }.readText().toInt()
     }
 
-    fun setPubKey(key: ByteArray?) = setId("pubkey", key)
-
-    fun getPubKey(): ByteArray = getId("pubkey")
-
     fun setQIMEI(key: ByteArray?) = setId("qimei", key)
 
     fun getQIMEI(): ByteArray = getId("qimei")
-
-    fun setShareKey(key: ByteArray?) = setId("sharekey", key)
-
-    fun getShareKey(): ByteArray = getId("sharekey")
 
     fun setMaxPackageSize(size: Int) {
         FileUtil.saveFile(PATH_MAX_PACKAGE_SIZE, size.toString())
@@ -225,6 +225,25 @@ object ProtocolDatas {
         return emptyList()
     }
 
+}
+
+class KeyList: TarsBase() {
+    var publicKeyList = arrayListOf<ByteArray>()
+    var shareKeyList = arrayListOf<ByteArray>()
+
+    override fun readFrom(input: TarsInputStream) {
+        shareKeyList = (input.read(cache_bytes_list, 0, false) as? ArrayList<ByteArray>) ?: publicKeyList
+        publicKeyList = (input.read(cache_bytes_list, 1, false) as? ArrayList<ByteArray>) ?: shareKeyList
+    }
+
+    override fun writeTo(output: TarsOutputStream) {
+        output.write(shareKeyList, 0)
+        output.write(publicKeyList, 1)
+    }
+
+    companion object {
+        private val cache_bytes_list = arrayListOf(EMPTY_BYTE_ARRAY)
+    }
 }
 
 class Packet: TarsBase() {

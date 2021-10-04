@@ -1,6 +1,8 @@
 package moe.ore.txhook.hook
 
 import android.content.Context
+import android.widget.ImageView
+import android.widget.TextView
 import de.robv.android.xposed.XposedBridge.log
 import de.robv.android.xposed.XposedHelpers
 import kotlinx.io.core.discardExact
@@ -16,8 +18,6 @@ import moe.ore.txhook.helper.*
 
 
 object MainHook {
-    private val desc = "一个一劳永逸的工具罢了。TXHook群里面有个内鬼，这个人不是很喜欢我，我也不想理他，谢谢你，陌生人！想来想去，过过往往，总是被针对，仔细想想其实原因在我，但是我并无不妥！！"
-
     private var isInit: Boolean = false
     // private val bytesClz = Class.forName("[B")
     private val codecClazz = load("com.tencent.qphone.base.util.CodecWarpper")!!
@@ -33,16 +33,40 @@ object MainHook {
 
     private fun hookData(ctx: Context) {
         ecdhClz.hookMethod("get_c_pub_key")?.after {
-            ProtocolDatas.setPubKey(JavaCaster.castToBytes(it.result) ?: EMPTY_BYTE_ARRAY)
+            val bytes = JavaCaster.castToBytes(it.result) ?: EMPTY_BYTE_ARRAY
+            if (bytes.isEmpty()) return@after
+            val list = ProtocolDatas.getKeyList()
+            if(list.publicKeyList.none { it.contentHashCode() == bytes.contentHashCode() }) {
+                list.publicKeyList.add(bytes)
+                ProtocolDatas.setKeyList(list)
+            }
         }
         ecdhClz.hookMethod("set_c_pub_key")?.before {
-            ProtocolDatas.setPubKey(JavaCaster.castToBytes(it.args[0]) ?: EMPTY_BYTE_ARRAY)
+            val bytes = JavaCaster.castToBytes(it.args[0]) ?: EMPTY_BYTE_ARRAY
+            if (bytes.isEmpty()) return@before
+            val list = ProtocolDatas.getKeyList()
+            if(list.publicKeyList.none { it.contentHashCode() == bytes.contentHashCode() }) {
+                list.publicKeyList.add(bytes)
+                ProtocolDatas.setKeyList(list)
+            }
         }
         ecdhClz.hookMethod("set_g_share_key")?.before {
-            ProtocolDatas.setShareKey(JavaCaster.castToBytes(it.args[0]) ?: EMPTY_BYTE_ARRAY)
+            val bytes = JavaCaster.castToBytes(it.args[0]) ?: EMPTY_BYTE_ARRAY
+            if (bytes.isEmpty()) return@before
+            val list = ProtocolDatas.getKeyList()
+            if(list.shareKeyList.none { it.contentHashCode() == bytes.contentHashCode() }) {
+                list.shareKeyList.add(bytes)
+                ProtocolDatas.setKeyList(list)
+            }
         }
         ecdhClz.hookMethod("get_g_share_key")?.after {
-            ProtocolDatas.setShareKey(JavaCaster.castToBytes(it.result) ?: EMPTY_BYTE_ARRAY)
+            val bytes = JavaCaster.castToBytes(it.result) ?: EMPTY_BYTE_ARRAY
+            if (bytes.isEmpty()) return@after
+            val list = ProtocolDatas.getKeyList()
+            if(list.shareKeyList.none { it.contentHashCode() == bytes.contentHashCode() }) {
+                list.shareKeyList.add(bytes)
+                ProtocolDatas.setKeyList(list)
+            }
         }
 
         codecClazz.hookMethod("setAccountKey")?.before { param ->

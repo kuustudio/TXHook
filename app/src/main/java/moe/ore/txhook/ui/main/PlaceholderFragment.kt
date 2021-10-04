@@ -6,13 +6,21 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.xuexiang.xui.XUI
+import com.xuexiang.xui.widget.dialog.materialdialog.DialogAction
+import com.xuexiang.xui.widget.dialog.materialdialog.MaterialDialog
+import com.xuexiang.xui.widget.dialog.materialdialog.MaterialDialog.ListCallback
+import com.xuexiang.xui.widget.dialog.materialdialog.MaterialDialog.SingleButtonCallback
 import com.xuexiang.xui.widget.grouplist.XUICommonListItemView
 import com.xuexiang.xui.widget.grouplist.XUIGroupListView
 import kotlinx.io.core.discardExact
 import kotlinx.io.core.readBytes
+import moe.ore.test.ProtobufParser
+import moe.ore.test.TarsParser
+import moe.ore.txhook.JsonViewActivity
 import moe.ore.txhook.PacketInfoActivity
 import moe.ore.txhook.app.TXApp
 import moe.ore.txhook.catching.FromSource
@@ -21,13 +29,18 @@ import moe.ore.txhook.databinding.FragmentCatchBinding
 import moe.ore.txhook.databinding.FragmentDataBinding
 import moe.ore.txhook.datas.PacketInfoData
 import moe.ore.txhook.datas.ProtocolDatas
+import moe.ore.txhook.helper.BytesUtil
+import moe.ore.txhook.helper.HexUtil
 import moe.ore.txhook.helper.toByteReadPacket
 import moe.ore.txhook.helper.toHexString
+import moe.ore.txhook.hook.MainHook
 import moe.ore.txhook.more.CookieBars
 import moe.ore.txhook.more.config
 import moe.ore.txhook.more.copyText
 import moe.ore.txhook.more.toast
 import moe.ore.txhook.ui.list.CatchingBaseAdapter
+import okhttp3.internal.filterList
+import java.lang.Exception
 import java.util.*
 import kotlin.math.max
 
@@ -119,10 +132,10 @@ class PlaceholderFragment(private val sectionNumber: Int) : Fragment() {
                 maxPackageSizeItem.detailText = ProtocolDatas.getMaxPackageSize().toString()
 
                 val publicKeyItem = groupListView.createItemView("PublicKey")
-                publicKeyItem.detailText = ProtocolDatas.getPubKey().toHexString()
+                publicKeyItem.detailText = "点击查看详细"
 
                 val shareKeyItem = groupListView.createItemView("ShareKey")
-                shareKeyItem.detailText = ProtocolDatas.getShareKey().toHexString()
+                shareKeyItem.detailText = "点击查看详细"
 
                 val guidItem = groupListView.createItemView("Guid")
                 guidItem.detailText = ProtocolDatas.getGUID().toHexString()
@@ -137,8 +150,38 @@ class PlaceholderFragment(private val sectionNumber: Int) : Fragment() {
                     .setTitle("基础信息")
                     .addItemView(appIdItem, copyListener)
                     .addItemView(maxPackageSizeItem, copyListener)
-                    .addItemView(publicKeyItem, copyListener)
-                    .addItemView(shareKeyItem, copyListener)
+                    .addItemView(publicKeyItem) {
+                        val list = ProtocolDatas.getKeyList()
+                        if (list.publicKeyList.isNotEmpty()) {
+                            val arr = list.publicKeyList.map { it.toHexString().let { if (it.length > 24) it.substring(0, 24) + "..." else it } }.toTypedArray()
+                            MaterialDialog.Builder(requireContext())
+                                .title("密钥列表（点击复制）")
+                                .items(*arr)
+                                .itemsCallback { dialog: MaterialDialog, _: View?, position: Int, _: CharSequence? ->
+                                    dialog.dismiss()
+                                    context?.copyText(arr[position])
+                                }
+                                .show()
+                        } else {
+                            toast.show("啥数据也没有嗷~~")
+                        }
+                    }
+                    .addItemView(shareKeyItem) {
+                        val list = ProtocolDatas.getKeyList()
+                        if (list.shareKeyList.isNotEmpty()) {
+                            val arr = list.shareKeyList.map { it.toHexString().let { if (it.length > 24) it.substring(0, 24) + "..." else it } }.toTypedArray()
+                            MaterialDialog.Builder(requireContext())
+                                .title("密钥列表（点击复制）")
+                                .items(*arr)
+                                .itemsCallback { dialog: MaterialDialog, _: View?, position: Int, _: CharSequence? ->
+                                    dialog.dismiss()
+                                    context?.copyText(arr[position])
+                                }
+                                .show()
+                        } else {
+                            toast.show("空空如也~~")
+                        }
+                    }
                     .addItemView(guidItem, copyListener)
                     .addItemView(ksidItem, copyListener)
                     .addItemView(qimeiItem, copyListener)
