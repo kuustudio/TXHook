@@ -12,41 +12,30 @@ import androidx.lifecycle.ViewModelProvider
 import com.xuexiang.xui.XUI
 import com.xuexiang.xui.widget.dialog.materialdialog.DialogAction
 import com.xuexiang.xui.widget.dialog.materialdialog.MaterialDialog
-import com.xuexiang.xui.widget.dialog.materialdialog.MaterialDialog.ListCallback
 import com.xuexiang.xui.widget.dialog.materialdialog.MaterialDialog.SingleButtonCallback
 import com.xuexiang.xui.widget.grouplist.XUICommonListItemView
 import com.xuexiang.xui.widget.grouplist.XUICommonListItemView.ACCESSORY_TYPE_CHEVRON
 import com.xuexiang.xui.widget.grouplist.XUIGroupListView
 import kotlinx.io.core.discardExact
 import kotlinx.io.core.readBytes
-import moe.ore.test.ProtobufParser
-import moe.ore.test.TarsParser
 import moe.ore.txhook.JsonViewActivity
 import moe.ore.txhook.PacketInfoActivity
 import moe.ore.txhook.app.TXApp
-import moe.ore.txhook.catching.FromSource
 import moe.ore.txhook.catching.PacketService
 import moe.ore.txhook.databinding.FragmentCatchBinding
 import moe.ore.txhook.databinding.FragmentDataBinding
 import moe.ore.txhook.databinding.FragmentSettingBinding
 import moe.ore.txhook.datas.PacketInfoData
 import moe.ore.txhook.datas.ProtocolDatas
-import moe.ore.txhook.helper.BytesUtil
-import moe.ore.txhook.helper.HexUtil
 import moe.ore.txhook.helper.toByteReadPacket
 import moe.ore.txhook.helper.toHexString
-import moe.ore.txhook.hook.MainHook
 import moe.ore.txhook.more.CookieBars
 import moe.ore.txhook.more.config
 import moe.ore.txhook.more.copyText
 import moe.ore.txhook.more.toast
 import moe.ore.txhook.ui.list.CatchingBaseAdapter
-import okhttp3.internal.filterList
-import java.lang.Exception
-import java.util.*
-import kotlin.math.max
-import android.widget.Toast
 import com.xuexiang.xui.widget.grouplist.XUICommonListItemView.ACCESSORY_TYPE_SWITCH
+import moe.ore.txhook.ByteCheckActivity
 import moe.ore.txhook.R
 import moe.ore.txhook.databinding.FragmentToolsBinding
 
@@ -287,6 +276,9 @@ class PlaceholderFragment(private val sectionNumber: Int) : Fragment() {
                     val intent = Intent(requireContext(), JsonViewActivity::class.java)
                     intent.putExtra("require_input", false)
                     requireContext().startActivity(intent)
+                }
+                binding.calcView.setOnClickListener {
+                    requireContext().startActivity(Intent(requireContext(), ByteCheckActivity::class.java))
                 }
 
                 return binding.root

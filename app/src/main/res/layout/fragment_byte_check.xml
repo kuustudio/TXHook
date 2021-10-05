@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".ui.main.ByteCheckFragment">
+
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <com.xuexiang.xui.widget.layout.XUILinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="20dp"
+            android:orientation="vertical">
+
+            <com.xuexiang.xui.widget.edittext.materialedittext.MaterialEditText
+                android:id="@+id/et_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:met_hideUnderline="true"
+                android:singleLine="false"
+                android:inputType="textMultiLine"
+                android:layout_margin="10dp"
+                android:textSize="16sp"
+                android:gravity="start"
+                android:hint="@string/warn_check_byte"
+                app:met_clearButton="true"/>
+
+            <LinearLayout
+                android:layout_marginTop="5dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/length"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/hex_length"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/_0"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=" 字节"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+            <RelativeLayout
+                android:layout_marginTop="5dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <Button
+                    android:id="@+id/md5_copy"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:layout_alignParentEnd="true"
+                    android:text="@string/copy"/>
+
+                <com.xuexiang.xui.widget.edittext.materialedittext.MaterialEditText
+                    android:id="@+id/md5_input"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:met_floatingLabel="normal"
+                    app:met_floatingLabelText="MD5"
+                    android:text="@string/example_md5_hex"
+                    app:met_floatingLabelAlwaysShown="true"
+                    app:met_floatingLabelTextSize="14sp"
+                    android:textSize="14sp"
+                    android:editable="false"
+                    android:layout_toStartOf="@+id/md5_copy"/>
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:layout_marginTop="5dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <Button
+                    android:id="@+id/sha1_copy"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:layout_alignParentEnd="true"
+                    android:text="@string/copy"/>
+
+                <com.xuexiang.xui.widget.edittext.materialedittext.MaterialEditText
+                    android:id="@+id/sha1_input"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_toStartOf="@+id/sha1_copy"
+                    android:text="@string/example_md5_hex"
+                    android:textSize="14sp"
+                    app:met_floatingLabel="normal"
+                    app:met_floatingLabelAlwaysShown="true"
+                    app:met_floatingLabelText="SHA1"
+                    android:editable="false"
+                    app:met_floatingLabelTextSize="14sp" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:layout_marginTop="5dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <Button
+                    android:id="@+id/sha256_copy"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:layout_alignParentEnd="true"
+                    android:text="@string/copy"/>
+
+                <com.xuexiang.xui.widget.edittext.materialedittext.MaterialEditText
+                    android:id="@+id/sha256_input"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:met_floatingLabel="normal"
+                    app:met_floatingLabelText="SHA256"
+                    android:text="@string/example_md5_hex"
+                    app:met_floatingLabelAlwaysShown="true"
+                    app:met_floatingLabelTextSize="14sp"
+                    android:editable="false"
+                    android:textSize="14sp"
+                    android:layout_toStartOf="@+id/sha256_copy"/>
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:layout_marginTop="5dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <Button
+                    android:id="@+id/crc32_copy"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:layout_alignParentEnd="true"
+                    android:text="@string/copy"/>
+
+                <com.xuexiang.xui.widget.edittext.materialedittext.MaterialEditText
+                    android:id="@+id/crc32_input"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:met_floatingLabel="normal"
+                    android:editable="false"
+                    app:met_floatingLabelText="CRC32"
+                    android:text="@string/example_md5_hex"
+                    app:met_floatingLabelAlwaysShown="true"
+                    app:met_floatingLabelTextSize="14sp"
+                    android:textSize="14sp"
+                    android:layout_toStartOf="@+id/crc32_copy"/>
+
+            </RelativeLayout>
+
+        </com.xuexiang.xui.widget.layout.XUILinearLayout>
+
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

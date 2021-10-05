@@ -45,8 +45,11 @@ class JsonViewActivity: BaseActivity() {
         } else {
             binding.asJce.setOnClickListener {
                 fastTry {
-                    val parser = TarsParser(HexUtil.Hex2Bin(input.text.toString()))
-                    loadJson(parser.startParsing().toString())
+                    val bytes = HexUtil.Hex2Bin(input.text.toString())
+                    if (bytes.isNotEmpty()) {
+                        val parser = TarsParser(bytes)
+                        loadJson(parser.startParsing().toString())
+                    }
                 }.onFailure {
                     toast.show("分析失败")
                 }

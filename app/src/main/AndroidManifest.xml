@@ -14,6 +14,7 @@
         android:name=".app.TXApp"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:configChanges="orientation|keyboardHidden|screenSize"
         android:requestLegacyExternalStorage="true"
         android:theme="@style/Theme.TXHook">
         <activity
@@ -30,13 +31,13 @@
 
         <activity
             android:name=".PacketInfoActivity"
-            android:screenOrientation="behind"
-            />
+            android:screenOrientation="behind" />
 
         <activity
             android:name=".JsonViewActivity"
-            android:screenOrientation="behind"
-            />
+            android:screenOrientation="behind" />
+
+        <activity android:name=".ByteCheckActivity"/>
 
         <meta-data
             android:name="xposedmodule"
