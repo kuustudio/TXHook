@@ -48,6 +48,7 @@ import kotlin.math.max
 import android.widget.Toast
 import com.xuexiang.xui.widget.grouplist.XUICommonListItemView.ACCESSORY_TYPE_SWITCH
 import moe.ore.txhook.R
+import moe.ore.txhook.databinding.FragmentToolsBinding
 
 /**
  * A placeholder fragment containing a simple view.
@@ -157,10 +158,12 @@ class PlaceholderFragment(private val sectionNumber: Int) : Fragment() {
                     .addItemView(publicKeyItem) {
                         val list = ProtocolDatas.getKeyList()
                         if (list.publicKeyList.isNotEmpty()) {
-                            val arr = list.publicKeyList.map { it.toHexString().let { if (it.length > 24) it.substring(0, 24) + "..." else it } }.toTypedArray()
+                            val arr = list.publicKeyList.map { it.toHexString() }
                             MaterialDialog.Builder(requireContext())
                                 .title("密钥列表（点击复制）")
-                                .items(*arr)
+                                .items(
+                                    arr.map { it.let { if (it.length > 24) it.substring(0, 24) + "..." else it } }
+                                )
                                 .itemsCallback { dialog: MaterialDialog, _: View?, position: Int, _: CharSequence? ->
                                     dialog.dismiss()
                                     context?.copyText(arr[position])
@@ -173,10 +176,12 @@ class PlaceholderFragment(private val sectionNumber: Int) : Fragment() {
                     .addItemView(shareKeyItem) {
                         val list = ProtocolDatas.getKeyList()
                         if (list.shareKeyList.isNotEmpty()) {
-                            val arr = list.shareKeyList.map { it.toHexString().let { if (it.length > 24) it.substring(0, 24) + "..." else it } }.toTypedArray()
+                            val arr = list.shareKeyList.map { it.toHexString() }
                             MaterialDialog.Builder(requireContext())
                                 .title("密钥列表（点击复制）")
-                                .items(*arr)
+                                .items(
+                                    arr.map { it.let { if (it.length > 24) it.substring(0, 24) + "..." else it } }
+                                )
                                 .itemsCallback { dialog: MaterialDialog, _: View?, position: Int, _: CharSequence? ->
                                     dialog.dismiss()
                                     context?.copyText(arr[position])
@@ -273,6 +278,16 @@ class PlaceholderFragment(private val sectionNumber: Int) : Fragment() {
                     .addItemView(netTypeItem, copyListener)
                     .addItemView(logDirItem, copyListener)
                     .addTo(groupListView)
+
+                return binding.root
+            }
+            3 -> {
+                val binding = FragmentToolsBinding.inflate(inflater, container, false)
+                binding.analyseView.setOnClickListener {
+                    val intent = Intent(requireContext(), JsonViewActivity::class.java)
+                    intent.putExtra("require_input", false)
+                    requireContext().startActivity(intent)
+                }
 
                 return binding.root
             }

@@ -20,4 +20,8 @@
     <string name="jsonViewer_icon_plus">expand</string>
     <string name="jsonViewer_icon_minus">collapse</string>
     <string name="one_anayse">一键分析</string>
+    <string name="analyse_jce_protobuf">Jce/Protobuf解析</string>
+    <string name="empty_packet">包体为空</string>
+    <string name="clear_all">清空</string>
+    <string name="warn_input">点击这里输入你要分析的内容</string>
 </resources>

@@ -50,7 +50,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:fillViewport="true"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:background="@color/white">
 
                 <com.yuyh.jsonviewer.library.JsonRecyclerView
                     android:id="@+id/json"
@@ -73,7 +74,7 @@
                 android:gravity="center"
                 android:textColor="@color/tx_appbar_color"
                 android:textSize="20sp"
-                android:text="包体为空"/>
+                android:text="@string/empty_packet"/>
 
         </com.xuexiang.xui.widget.layout.XUILinearLayout>
 

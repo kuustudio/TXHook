@@ -289,7 +289,6 @@ public class JsonViewerAdapter extends BaseJsonViewerAdapter<JsonViewerAdapter.J
                                         view.getContext().startActivity(intent);
 
                                         Toast.makeText(view.getContext(), "分析成功", Toast.LENGTH_SHORT).show();
-
                                     } catch (Exception e) {
                                         e.printStackTrace();
                                         Toast.makeText(view.getContext(), "尝试作为Jce分析失败", Toast.LENGTH_SHORT).show();

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".ui.main.PlaceholderFragment">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_margin="20dp">
+
+        <com.xuexiang.xui.widget.layout.XUILinearLayout
+            android:id="@+id/analyse_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/xui_config_color_white"
+            app:xui_borderColor="?attr/xui_config_color_separator_light"
+            app:xui_outerNormalColor="?attr/xui_config_color_background"
+            app:xui_showBorderOnlyBeforeL="true"
+            app:xui_radius="8dp">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_margin="15dp">
+
+                <ImageView
+                    android:id="@+id/analyse_icon"
+                    android:layout_width="45dp"
+                    android:layout_height="45dp"
+                    android:src="@drawable/ic_baseline_analytics_24"
+                    android:layout_centerInParent="true"
+                    android:layout_alignParentStart="true"/>
+
+                <TextView
+                    android:layout_marginStart="12dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/analyse_jce_protobuf"
+                    android:layout_toEndOf="@+id/analyse_icon"
+                    android:layout_centerInParent="true"
+                    android:textColor="#575757"
+                    android:textStyle="bold"/>
+
+            </RelativeLayout>
+
+        </com.xuexiang.xui.widget.layout.XUILinearLayout>
+
+
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

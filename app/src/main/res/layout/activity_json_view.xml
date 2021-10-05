@@ -42,18 +42,92 @@
             </RelativeLayout>
         </com.google.android.material.appbar.AppBarLayout>
 
-        <HorizontalScrollView
+        <com.xuexiang.xui.widget.layout.XUILinearLayout
             android:layout_width="match_parent"
+            android:background="@color/white"
             android:layout_height="match_parent"
-            android:fillViewport="true"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:visibility="visible">
 
-            <com.yuyh.jsonviewer.library.JsonRecyclerView
-                android:id="@+id/json"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent" />
+            <RelativeLayout
+                android:id="@+id/button_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
 
-        </HorizontalScrollView>
+                <com.xuexiang.xui.widget.button.ButtonView
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    android:id="@+id/as_pb"
+                    style="@style/ButtonView.Blue"
+                    android:text="@string/as_protobuf"
+                    android:textStyle="bold"
+                    android:minHeight="30dp"
+                    android:padding="10dp"
+                    android:layout_margin="10dp"/>
+
+                <com.xuexiang.xui.widget.button.ButtonView
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    android:id="@+id/as_jce"
+                    style="@style/ButtonView.Blue"
+                    android:text="@string/as_tars"
+                    android:textStyle="bold"
+                    android:minHeight="30dp"
+                    android:padding="10dp"
+                    android:layout_margin="10dp"
+                    android:layout_toEndOf="@id/as_pb"/>
+
+                <com.xuexiang.xui.widget.button.ButtonView
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    android:id="@+id/reanayse"
+                    style="@style/ButtonView.Blue"
+                    android:text="@string/clear_all"
+                    android:textStyle="bold"
+                    android:minHeight="30dp"
+                    android:padding="10dp"
+                    android:layout_margin="10dp"
+                    android:layout_toEndOf="@id/as_jce"/>
+            </RelativeLayout>
+
+            <HorizontalScrollView
+                android:id="@+id/json_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fillViewport="true"
+                android:orientation="vertical"
+                android:background="@color/white"
+                android:visibility="gone">
+
+                <com.yuyh.jsonviewer.library.JsonRecyclerView
+                    android:id="@+id/json"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent" />
+
+            </HorizontalScrollView>
+
+            <com.xuexiang.xui.widget.layout.XUILinearLayout
+                android:id="@+id/input_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <com.xuexiang.xui.widget.edittext.materialedittext.MaterialEditText
+                    android:id="@+id/et_input"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    app:met_hideUnderline="true"
+                    android:singleLine="false"
+                    android:inputType="textMultiLine"
+                    android:layout_margin="10dp"
+                    android:textSize="16sp"
+                    android:gravity="start"
+                    android:hint="@string/warn_input"
+                    app:met_clearButton="true"/>
+
+            </com.xuexiang.xui.widget.layout.XUILinearLayout>
+
+        </com.xuexiang.xui.widget.layout.XUILinearLayout>
+
     </LinearLayout>
 
 
