@@ -21,7 +21,6 @@ import com.xuexiang.xui.widget.textview.badge.BadgeView
 import moe.ore.txhook.more.config
 import moe.ore.txhook.more.getColor
 
-
 class CatchingBaseAdapter(
     private val services: ArrayList<PacketService>
 ): BaseAdapter() {

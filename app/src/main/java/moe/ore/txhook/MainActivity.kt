@@ -30,14 +30,14 @@ import java.util.concurrent.atomic.AtomicBoolean
 import android.view.animation.Animation
 
 import android.view.animation.TranslateAnimation
-
-
+import moe.ore.txhook.helper.ThreadManager
 
 
 class MainActivity : BaseActivity() {
     // private var isCatching: Boolean = false
     private val isChanging = AtomicBoolean(false)
     private var adapter: CatchingBaseAdapter? = null
+
     private lateinit var binding: ActivityMainBinding
     private var isExit = 0
     private val exitHandler: Handler by lazy {
@@ -167,21 +167,25 @@ class MainActivity : BaseActivity() {
     fun changeContent(isClick: Boolean = false) {
         if (!isChanging.get()) {
             isChanging.set(true)
+
             val catchingList = TXApp.getCatchingList()
             adapter = catchingList.adapter as CatchingBaseAdapter?
-
-            val services = ProtocolDatas.getServices()
-            if (services.isNotEmpty()) {
-                adapter?.setItemFirst(services)
-                adapter?.notifyDataSetChanged()
-                TXApp.catching.multipleStatusView.showContent()
-            } else {
-                TXApp.catching.multipleStatusView.showEmpty()
+            ThreadManager.getInstance(0).addTask {
+                val services = ProtocolDatas.getServices()
+                runOnUiThread {
+                    if (services.isNotEmpty()) {
+                        adapter?.setItemFirst(services)
+                        adapter?.notifyDataSetChanged()
+                        TXApp.catching.multipleStatusView.showContent()
+                    } else {
+                        TXApp.catching.multipleStatusView.showEmpty()
+                    }
+                }
             }
+
             isChanging.set(false)
         } else {
-            if (isClick)
-                CookieBars.cookieBar(this, "提示一下", "正在刷新数据了哦~", "OK")
+            if (isClick) CookieBars.cookieBar(this, "提示一下", "正在刷新数据了哦~", "OK") {}
         }
     }
 

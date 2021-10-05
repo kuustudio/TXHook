@@ -62,15 +62,16 @@ class PlaceholderFragment(private val sectionNumber: Int) : Fragment() {
                 val binding = FragmentCatchBinding.inflate(inflater, container, false).also {
                     TXApp.catching = it
                 }
+
                 val statusView = binding.multipleStatusView
                 statusView.setOnRetryClickListener {
                     CookieBars.cookieBar(activity, "提示一下", "请点击右下角按钮刷新获取数据哦~", "明白了") {
                         toast.show("去吧，皮卡丘~")
                     }
                 }
+
                 val listView = TXApp.getCatchingList()
                 listView.adapter = CatchingBaseAdapter(TXApp.catchingList)
-
                 listView.onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
                     val service = parent.getItemAtPosition(position) as PacketService
                     val startIntent = Intent(XUI.getContext(), PacketInfoActivity::class.java)
@@ -104,7 +105,6 @@ class PlaceholderFragment(private val sectionNumber: Int) : Fragment() {
                         }
                     })
                     startActivity(startIntent)
-
                 }
                 if (TXApp.catchingList.isEmpty()) statusView.showEmpty() else statusView.showContent()
 
