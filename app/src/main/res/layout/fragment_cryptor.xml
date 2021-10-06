@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="@color/white"
+    tools:context=".ui.main.ByteCheckFragment">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <com.xuexiang.xui.widget.spinner.materialspinner.MaterialSpinner
+            android:id="@+id/cryptor_spinner"
+            style="@style/Material.SpinnerStyle"
+            android:layout_marginTop="?attr/xui_config_content_spacing_vertical"
+            android:layout_width="match_parent"
+            app:ms_entries="@array/cryptor" />
+
+        <LinearLayout
+            android:layout_marginTop="15dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal">
+
+            <Button
+                android:layout_weight="1"
+                android:id="@+id/enc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/encode"/>
+
+            <Button
+                android:text="@string/decode"
+                android:layout_weight="1"
+                android:layout_marginStart="10dp"
+                android:id="@+id/dec"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+
+        <com.xuexiang.xui.widget.edittext.materialedittext.MaterialEditText
+            android:layout_marginTop="15dp"
+            android:id="@+id/key"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:gravity="start"
+            android:hint="@string/warn_input_key"
+            app:met_iconLeft="@drawable/ic_baseline_key_24"/>
+
+        <com.xuexiang.xui.widget.layout.XUILinearLayout
+            android:layout_weight="1"
+            android:layout_marginTop="15dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:xui_radius="8dp"
+            app:xui_borderColor="@color/black">
+
+            <com.xuexiang.xui.widget.edittext.materialedittext.MaterialEditText
+                android:id="@+id/input"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_margin="10dp"
+                android:textSize="16sp"
+                android:singleLine="false"
+                android:inputType="textMultiLine"
+                android:gravity="start"
+                android:hint="@string/warn_trans"
+                app:met_hideUnderline="true"
+                app:met_clearButton="true"/>
+
+        </com.xuexiang.xui.widget.layout.XUILinearLayout>
+
+        <ImageView
+            android:layout_margin="15dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:src="@drawable/ic_baseline_keyboard_double_arrow_down_24"/>
+
+        <com.xuexiang.xui.widget.layout.XUILinearLayout
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:xui_radius="8dp"
+            app:xui_borderColor="@color/black">
+
+            <com.xuexiang.xui.widget.edittext.materialedittext.MaterialEditText
+                android:id="@+id/output"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:singleLine="false"
+                android:inputType="textMultiLine"
+                android:layout_margin="10dp"
+                android:textSize="16sp"
+                android:gravity="start"
+                app:met_hideUnderline="true"
+                android:editable="false"/>
+
+        </com.xuexiang.xui.widget.layout.XUILinearLayout>
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

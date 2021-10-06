@@ -31,6 +31,7 @@ import android.view.animation.Animation
 
 import android.view.animation.TranslateAnimation
 import moe.ore.txhook.helper.ThreadManager
+import kotlin.concurrent.thread
 
 
 class MainActivity : BaseActivity() {
@@ -39,6 +40,7 @@ class MainActivity : BaseActivity() {
     private var adapter: CatchingBaseAdapter? = null
 
     private lateinit var binding: ActivityMainBinding
+
     private var isExit = 0
     private val exitHandler: Handler by lazy {
         object : Handler(mainLooper) {

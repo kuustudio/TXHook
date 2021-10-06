@@ -35,4 +35,15 @@
     <string name="back">返回</string>
     <string name="length">长度：</string>
     <string name="_0">0</string>
+    <string name="warn_trans">请输入你要转换的数据</string>
+    <string name="hex2str">HEX转字符串</string>
+    <string name="str2hex">字符串转HEX</string>
+    <string name="gzip">GZIP压缩</string>
+    <string name="ungzip">GZIP解压</string>
+    <string name="deflate_zip">DEFLATE压缩</string>
+    <string name="un_deflate_zip">DEFLATE解压</string>
+    <string name="warn_cryptor">请输入要加解密数据的HEX</string>
+    <string name="encode">加密</string>
+    <string name="decode">解密</string>
+    <string name="warn_input_key">请输入密钥(留空将自动尝试密钥)</string>
 </resources>

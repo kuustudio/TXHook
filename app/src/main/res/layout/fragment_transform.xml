@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".ui.main.ByteCheckFragment">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <com.xuexiang.xui.widget.layout.XUILinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <com.xuexiang.xui.widget.layout.XUILinearLayout
+                android:id="@+id/trans_hex_layout"
+                android:layout_width="match_parent"
+                android:background="@color/white"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="10dp"
+                app:xui_radius="12dp">
+
+                <com.xuexiang.xui.widget.edittext.materialedittext.MaterialEditText
+                    android:id="@+id/trans_hex_input"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:singleLine="false"
+                    android:inputType="textMultiLine"
+                    android:layout_margin="10dp"
+                    android:textSize="16sp"
+                    android:gravity="start"
+                    android:hint="@string/warn_trans"
+                    app:met_clearButton="true"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:padding="10dp">
+
+                    <Button
+                        android:layout_weight="1"
+                        android:id="@+id/hex2str"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/hex2str"/>
+
+                    <Button
+                        android:text="@string/str2hex"
+                        android:layout_weight="1"
+                        android:layout_marginStart="10dp"
+                        android:id="@+id/str2hex"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+
+                </LinearLayout>
+
+            </com.xuexiang.xui.widget.layout.XUILinearLayout>
+
+            <com.xuexiang.xui.widget.layout.XUILinearLayout
+                android:layout_marginTop="20dp"
+                android:id="@+id/trans_zip_layout"
+                android:layout_width="match_parent"
+                android:background="@color/white"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="10dp"
+                app:xui_radius="12dp">
+
+                <com.xuexiang.xui.widget.edittext.materialedittext.MaterialEditText
+                    android:id="@+id/trans_zip_input"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:singleLine="false"
+                    android:inputType="textMultiLine"
+                    android:layout_margin="10dp"
+                    android:textSize="16sp"
+                    android:gravity="start"
+                    android:hint="@string/warn_trans"
+                    app:met_clearButton="true"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_horizontal">
+
+                        <Button
+                            android:layout_weight="1"
+                            android:id="@+id/gzip"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/gzip"/>
+
+                        <Button
+                            android:text="@string/ungzip"
+                            android:layout_weight="1"
+                            android:layout_marginStart="10dp"
+                            android:id="@+id/ungzip"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_marginTop="10dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_horizontal">
+
+                        <Button
+                            android:layout_weight="1"
+                            android:id="@+id/zip"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/deflate_zip"/>
+
+                        <Button
+                            android:text="@string/un_deflate_zip"
+                            android:layout_weight="1"
+                            android:layout_marginStart="10dp"
+                            android:id="@+id/unzip"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </com.xuexiang.xui.widget.layout.XUILinearLayout>
+
+        </com.xuexiang.xui.widget.layout.XUILinearLayout>
+
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
