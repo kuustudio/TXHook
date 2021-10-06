@@ -218,15 +218,13 @@ object ProtocolDatas {
                     // 大于 降序
                     return@Comparator if (f1t > f2t)  // f1新 生序
                         -1
-                    else
-                        if (f2t > f1t) // f2新
-                            1
-                        else {
-                            if (f1Seq == f2Seq && f1To) 1 // f1是发包 先发后收 收包在上
-                            else
-                                if(f2Seq == f1Seq && f2To) -1
-                            else 0
-                        }
+                    else if (f2t > f1t) // f2新
+                        1
+                    else {
+                        if (f1Seq == f2Seq && f1To) 1 // f1是发包 先发后收 收包在上
+                        else if(f2Seq == f1Seq && f2To) -1
+                        else 0
+                    }
                 })
 
                 sortList.forEach {

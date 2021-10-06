@@ -176,7 +176,7 @@ object MainHook {
                         if (buf.first() == 0x78.toByte()) buf = ZipUtil.unCompress(buf) // 被压缩 -> 解压缩
                         val data = ProtoBuf.decodeFromByteArray<SSOLoginMerge.BusiBuffData>(buf)
                         data.buffList?.forEach {
-                            ProtocolDatas.addService(ToService(fromSource, uin.toLong(), it.seq, it.cmd, it.data, System.currentTimeMillis(), sessionId).apply {
+                            ProtocolDatas.addService(ToService(fromSource, uin.toLong(), it.seq, it.cmd, BytesUtil.byteMerger(BytesUtil.int32ToBuf(it.size), it.data), System.currentTimeMillis(), sessionId).apply {
                                 packetType = to.packetType
                                 encodeType = to.encodeType
                             })
@@ -209,7 +209,7 @@ object MainHook {
                         if (buf.first() == 0x78.toByte()) buf = ZipUtil.unCompress(buf) // 被压缩 -> 解压缩
                         val data = ProtoBuf.decodeFromByteArray<SSOLoginMerge.BusiBuffData>(buf)
                         data.buffList?.forEach {
-                            ProtocolDatas.addService(ToService(fromSource, uin.toLong(), it.seq, it.cmd, it.data, System.currentTimeMillis(), sessionId).apply {
+                            ProtocolDatas.addService(ToService(fromSource, uin.toLong(), it.seq, it.cmd, BytesUtil.byteMerger(BytesUtil.int32ToBuf(it.size), it.data), System.currentTimeMillis(), sessionId).apply {
                                 packetType = to.packetType
                                 encodeType = to.encodeType
                             })
@@ -242,7 +242,7 @@ object MainHook {
                         if (buf.first() == 0x78.toByte()) buf = ZipUtil.unCompress(buf) // 被压缩 -> 解压缩
                         val data = ProtoBuf.decodeFromByteArray<SSOLoginMerge.BusiBuffData>(buf)
                         data.buffList?.forEach {
-                            ProtocolDatas.addService(ToService(fromSource, uin.toLong(), it.seq, it.cmd, it.data, System.currentTimeMillis(), sessionId).apply {
+                            ProtocolDatas.addService(ToService(fromSource, uin.toLong(), it.seq, it.cmd, BytesUtil.byteMerger(BytesUtil.int32ToBuf(it.size), it.data), System.currentTimeMillis(), sessionId).apply {
                                 packetType = to.packetType
                                 encodeType = to.encodeType
                             })
