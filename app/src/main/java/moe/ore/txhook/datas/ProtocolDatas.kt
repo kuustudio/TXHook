@@ -207,13 +207,26 @@ object ProtocolDatas {
                 Collections.sort(sortList, Comparator { f1, f2 ->
                     val f1t = f1.lastModified()
                     val f2t = f2.lastModified()
-                    // val f1Seq = f1.name.split(".")[0].toInt()
-                    // val f2Seq = f2.name.split(".")[0].toInt()
+
+                    val f1Seq = f1.name.split(".")[0].toInt()
+                    val f2Seq = f2.name.split(".")[0].toInt()
 
                     val f1To = f1.name.endsWith("to")
-                    // val f2To = f2.name.endsWith("to")
+                    val f2To = f2.name.endsWith("to")
 
-                    return@Comparator if (f1t > f2t) -1 else if (f2t > f1t) 1 else if (f1To) 1 else -1 // 优先发包在上
+                    // 小于 升序
+                    // 大于 降序
+                    return@Comparator if (f1t > f2t)  // f1新 生序
+                        -1
+                    else
+                        if (f2t > f1t) // f2新
+                            1
+                        else {
+                            if (f1Seq == f2Seq && f1To) 1 // f1是发包 先发后收 收包在上
+                            else
+                                if(f2Seq == f1Seq && f2To) -1
+                            else 0
+                        }
                 })
 
                 sortList.forEach {
