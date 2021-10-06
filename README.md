@@ -1,7 +1,5 @@
 # TXHook 腾讯QQ协议分析工具
 
-TXHOOK技术交流群：702991373
-
 ## 已实现功能
 
  - 获取ShareKey\PublicKey\D2\A2...
