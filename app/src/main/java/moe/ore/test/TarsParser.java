@@ -1,10 +1,8 @@
 package moe.ore.test;
 
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -52,9 +50,9 @@ public class TarsParser {
         this.bs.position(pos);
     }
 
-    public JSONObject startParsing() {
+    public NewJsonObject startParsing() {
 
-        JSONObject object = new JSONObject();
+        NewJsonObject object = new NewJsonObject();
 
         while (bs.hasRemaining()) {
             HeadData headData = new HeadData();
@@ -70,7 +68,7 @@ public class TarsParser {
         return object;
     }
 
-    private void analyzeData(int tag, byte type, JSONObject object) throws JSONException {
+    private void analyzeData(int tag, byte type, NewJsonObject object) throws JSONException {
         object.put(String.valueOf(tag), getValue(type));
         /*
         switch (type) {
@@ -274,7 +272,7 @@ public class TarsParser {
                 if (size < 0)
                     throw new TarsDecodeException("size is < 0 " + size);
 
-                JSONObject jsonObject = new JSONObject();
+                NewJsonObject jsonObject = new NewJsonObject();
 
                 for (int i = 0; i < size; i++) {
                     Object key;
@@ -299,7 +297,7 @@ public class TarsParser {
                 return jsonObject;
             }
             case 9: {
-                JSONObject jsonObject = new JSONObject();
+                NewJsonObject jsonObject = new NewJsonObject();
                 int size = read((int)0, 0, true);
                 if (size < 0) throw new TarsDecodeException("size invalid: " + size);
                 for (int i = 0; i < size; ++i) {
@@ -312,7 +310,7 @@ public class TarsParser {
                 return jsonObject;
             }
             case 10: {
-                JSONObject jsonObject = new JSONObject();
+                NewJsonObject jsonObject = new NewJsonObject();
 
                 int i = 0;
                 while (true) {
@@ -340,7 +338,7 @@ public class TarsParser {
                 if (hd.type != 0) {
                     throw new TarsDecodeException("simple list must be bytearray");
                 }
-                int size = read((int)0, 0, true);
+                int size = read(0, 0, true);
                 if (size < 0 || size > this.bs.capacity()) throw new TarsDecodeException("size invalid: " + size);
 
                 byte[] b = new byte[size];

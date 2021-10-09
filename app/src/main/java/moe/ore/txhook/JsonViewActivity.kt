@@ -1,6 +1,5 @@
 package moe.ore.txhook
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.View.GONE
 import android.view.View.VISIBLE
@@ -8,7 +7,7 @@ import android.widget.HorizontalScrollView
 import android.widget.RelativeLayout
 import com.xuexiang.xui.widget.edittext.materialedittext.MaterialEditText
 import com.xuexiang.xui.widget.layout.XUILinearLayout
-import com.yuyh.jsonviewer.library.JsonRecyclerView
+import com.yuyh.jsonviewer.library.ProtocolViewer
 import moe.ore.test.ProtobufParser
 import moe.ore.test.TarsParser
 import moe.ore.txhook.databinding.ActivityJsonViewBinding
@@ -22,7 +21,7 @@ class JsonViewActivity: BaseActivity() {
 
     private lateinit var inputView: XUILinearLayout
     private lateinit var jsonView: HorizontalScrollView
-    private lateinit var json: JsonRecyclerView
+    private lateinit var json: ProtocolViewer
     private lateinit var input: MaterialEditText
     private lateinit var buttonView: RelativeLayout
 

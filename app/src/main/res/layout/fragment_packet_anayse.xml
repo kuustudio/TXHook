@@ -53,7 +53,7 @@
                 android:orientation="vertical"
                 android:background="@color/white">
 
-                <com.yuyh.jsonviewer.library.JsonRecyclerView
+                <com.yuyh.jsonviewer.library.ProtocolViewer
                     android:id="@+id/json"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent" />

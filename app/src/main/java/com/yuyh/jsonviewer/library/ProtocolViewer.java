@@ -19,19 +19,19 @@ import org.json.JSONObject;
 /**
  * Created by yuyuhang on 2017/11/30.
  */
-public class JsonRecyclerView extends RecyclerView {
+public class ProtocolViewer extends RecyclerView {
 
     private BaseJsonViewerAdapter mAdapter;
 
-    public JsonRecyclerView(Context context) {
+    public ProtocolViewer(Context context) {
         this(context, null);
     }
 
-    public JsonRecyclerView(Context context, @Nullable AttributeSet attrs) {
+    public ProtocolViewer(Context context, @Nullable AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public JsonRecyclerView(Context context, @Nullable AttributeSet attrs, int defStyle) {
+    public ProtocolViewer(Context context, @Nullable AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
 
         initView();

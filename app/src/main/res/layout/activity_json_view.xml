@@ -100,7 +100,7 @@
                 android:background="@color/white"
                 android:visibility="gone">
 
-                <com.yuyh.jsonviewer.library.JsonRecyclerView
+                <com.yuyh.jsonviewer.library.ProtocolViewer
                     android:id="@+id/json"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent" />

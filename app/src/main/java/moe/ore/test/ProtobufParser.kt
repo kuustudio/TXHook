@@ -5,7 +5,6 @@ import com.google.protobuf.UnknownFieldSet
 import com.google.protobuf.WireFormat
 import moe.ore.txhook.helper.sub
 import moe.ore.txhook.helper.toHexString
-import org.json.JSONObject
 import java.lang.RuntimeException
 
 class ProtobufParser
@@ -14,8 +13,8 @@ class ProtobufParser
 
     private val buffer = buffer.sub(pos, buffer.size - pos)
 
-    fun startParsing(): JSONObject {
-        val objects = JSONObject()
+    fun startParsing(): NewJsonObject {
+        val objects = NewJsonObject()
         val fieldSet = UnknownFieldSet.parseFrom(buffer)
 
         printUnknownFields(fieldSet, objects)
@@ -23,7 +22,7 @@ class ProtobufParser
         return objects
     }
 
-    private fun printUnknownFields(fieldSet: UnknownFieldSet, objects: JSONObject) {
+    private fun printUnknownFields(fieldSet: UnknownFieldSet, objects: NewJsonObject) {
         fieldSet.asMap().entries.forEach {
             val number = it.key
             val field = it.value
@@ -34,20 +33,20 @@ class ProtobufParser
             printUnknownField(number, WireFormat.WIRETYPE_LENGTH_DELIMITED, field.lengthDelimitedList, objects)
 
             field.groupList.forEach { value ->
-                val jsonObject = JSONObject()
+                val jsonObject = NewJsonObject()
                 printUnknownFields(value, jsonObject)
                 objects.put(number.toString(), jsonObject)
             }
         }
     }
 
-    private fun printUnknownField(number: Int, wireType: Int, values: List<*>, objects: JSONObject) {
+    private fun printUnknownField(number: Int, wireType: Int, values: List<*>, objects: NewJsonObject) {
         values.forEach {
             printUnknownFieldValue(number, wireType, it, objects)
         }
     }
 
-    private fun printUnknownFieldValue(number: Int, tag: Int, value: Any?, objects: JSONObject) {
+    private fun printUnknownFieldValue(number: Int, tag: Int, value: Any?, objects: NewJsonObject) {
         when(WireFormat.getTagWireType(tag)) {
             WireFormat.WIRETYPE_VARINT -> objects.put(number.toString(), value as Long)
             WireFormat.WIRETYPE_FIXED32 -> objects.put(number.toString(), value as Int)
@@ -56,7 +55,7 @@ class ProtobufParser
                 val v = value as ByteString
 
                 kotlin.runCatching {
-                    val json = JSONObject()
+                    val json = NewJsonObject()
                     val msg = UnknownFieldSet.parseFrom(v)
                     printUnknownFields(msg, json)
                     objects.put(number.toString(), json)
@@ -66,7 +65,7 @@ class ProtobufParser
 
             }
             WireFormat.WIRETYPE_START_GROUP -> {
-                val json = JSONObject()
+                val json = NewJsonObject()
                 printUnknownFields(value as UnknownFieldSet, json)
                 objects.put(number.toString(), json)
             }

@@ -37,13 +37,10 @@ import moe.ore.txhook.more.EasyAndroidKt;
  */
 public class JsonViewerAdapter extends BaseJsonViewerAdapter<JsonViewerAdapter.JsonItemViewHolder> {
 
-    private String jsonStr;
-
     private JSONObject mJSONObject;
     private JSONArray mJSONArray;
 
     public JsonViewerAdapter(String jsonStr) {
-        this.jsonStr = jsonStr;
 
         Object object = null;
         try {
@@ -74,6 +71,7 @@ public class JsonViewerAdapter extends BaseJsonViewerAdapter<JsonViewerAdapter.J
         }
     }
 
+    @NonNull
     @Override
     public JsonItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         return new JsonItemViewHolder(new JsonItemView(parent.getContext()));
@@ -101,6 +99,7 @@ public class JsonViewerAdapter extends BaseJsonViewerAdapter<JsonViewerAdapter.J
 
             String key = Objects.requireNonNull(mJSONObject.names()).optString(position - 1); // 遍历key
             Object value = mJSONObject.opt(key);
+
             if (position < getItemCount() - 2) {
                 handleJsonObject(key, value, itemView, true, 1);
             } else {
@@ -156,6 +155,11 @@ public class JsonViewerAdapter extends BaseJsonViewerAdapter<JsonViewerAdapter.J
      */
     private void handleJsonObject(String key, Object value, JsonItemView itemView, boolean appendComma, int hierarchy) {
         SpannableStringBuilder keyBuilder = new SpannableStringBuilder(Utils.getHierarchyStr(hierarchy));
+
+        if (key.matches("[0-9]*-[0-9]*")) {
+            key = key.split("-")[0];
+        }
+
         keyBuilder.append("\"").append(key).append("\"").append(":");
         keyBuilder.setSpan(new ForegroundColorSpan(KEY_COLOR), 0, keyBuilder.length() - 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         keyBuilder.setSpan(new ForegroundColorSpan(BRACES_COLOR), keyBuilder.length() - 1, keyBuilder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
