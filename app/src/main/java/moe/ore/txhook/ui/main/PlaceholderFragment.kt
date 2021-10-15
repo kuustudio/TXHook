@@ -41,6 +41,7 @@ import com.xuexiang.xui.utils.SnackbarUtils
 
 import com.xuexiang.xui.widget.searchview.MaterialSearchView.SearchViewListener
 import moe.ore.txhook.helper.ThreadManager
+import moe.ore.txhook.helper.fastTry
 import moe.ore.txhook.more.*
 import java.io.File
 
@@ -141,24 +142,27 @@ class PlaceholderFragment(private val sectionNumber: Int) : Fragment() {
                                 .show()
 
                             ThreadManager[0].addTask {
-                                val regex = query.toRegex()
-                                val result = arrayListOf<PacketService>()
+                                fastTry {
+                                    val regex = query.toRegex()
+                                    val result = arrayListOf<PacketService>()
 
-                                TXApp.catchingList.forEach {
-                                    if (run) {
-                                        val cmd = if (it.to) it.toToService().cmd else it.toFromService().cmd
-                                        if (query == cmd || cmd.contains(query, true) || regex.matches(cmd)) {
-                                            result.add(it)
-                                        }
-                                    } else return@forEach
+                                    TXApp.catchingList.forEach {
+                                        if (run) {
+                                            val cmd = if (it.to) it.toToService().cmd else it.toFromService().cmd
+                                            if (query == cmd || cmd.contains(query, true) || regex.matches(cmd)) {
+                                                result.add(it)
+                                            }
+                                        } else return@forEach
+                                    }
+
+                                    if (run) activity?.runOnUiThread {
+                                        dialog.dismiss()
+                                        toast.show("过滤成功：${result.size}")
+                                        adapter.setItemFirst(result)
+                                    }
+                                }.onFailure {
+                                    toast.show("过滤错误：$it")
                                 }
-
-                                if (run) activity?.runOnUiThread {
-                                    dialog.dismiss()
-                                    toast.show("过滤成功：${result.size}")
-                                    adapter.setItemFirst(result)
-                                }
-
                             }
 
                             return false
