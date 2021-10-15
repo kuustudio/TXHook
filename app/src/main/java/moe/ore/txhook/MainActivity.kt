@@ -178,33 +178,35 @@ class MainActivity : BaseActivity() {
         }
 
         searchButton.setOnClickListener {
-            onSearch = if (onSearch) {
-                searchButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_search_off_24))
-                false
-            } else {
-                searchButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_search_24))
-                true
-            }
-
-            TXApp.getCatchingSearchBar().also {
-                it.visibility = if(onSearch) {
-                    it.showSearch(true)
-                    VISIBLE
-                } else {
-                    it.closeSearch()
-                    GONE
-                }
-            }.setOnSearchViewListener(object : MaterialSearchView.SearchViewListener {
-                override fun onSearchViewShown() {
-                    onSearch = true
-                    searchButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_search_24))
-                }
-
-                override fun onSearchViewClosed() {
-                    onSearch = false
+            if (TXApp.catchingList.isNotEmpty()) {
+                onSearch = if (onSearch) {
                     searchButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_search_off_24))
+                    false
+                } else {
+                    searchButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_search_24))
+                    true
                 }
-            })
+
+                TXApp.getCatchingSearchBar().also {
+                    it.visibility = if(onSearch) {
+                        it.showSearch(true)
+                        VISIBLE
+                    } else {
+                        it.closeSearch()
+                        GONE
+                    }
+                }.setOnSearchViewListener(object : MaterialSearchView.SearchViewListener {
+                    override fun onSearchViewShown() {
+                        onSearch = true
+                        searchButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_search_24))
+                    }
+
+                    override fun onSearchViewClosed() {
+                        onSearch = false
+                        searchButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_search_off_24))
+                    }
+                })
+            } else toast.show("当前无数据无法使用过滤功能")
         }
 
         inputActivity()

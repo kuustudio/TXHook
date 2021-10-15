@@ -178,7 +178,7 @@ class ByteCheckFragment(private val sectionNumber: Int) : Fragment() {
                                     }.forEach {
                                         val out = TeaUtil.decrypt(data, it)
                                         if (out != null) {
-                                            key.setText(it.toString())
+                                            key.setText(it.toHexString())
                                             output.setText(out.toHexString())
                                             isSuccess = true
                                             toast.show("解密成功，密钥已展出：sharekey")
