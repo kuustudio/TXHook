@@ -2,6 +2,7 @@ package moe.ore.txhook.app
 
 import android.widget.ListView
 import androidx.constraintlayout.widget.ConstraintLayout
+import com.xuexiang.xui.widget.searchview.MaterialSearchView
 import moe.ore.txhook.R
 import moe.ore.txhook.catching.PacketService
 import moe.ore.txhook.databinding.FragmentCatchBinding
@@ -20,8 +21,11 @@ class TXApp: BaseApp() {
          * 获取抓包列表
          */
         fun getCatchingList(): ListView {
-            val catchingRoot = catching.multipleStatusView.contentView as ConstraintLayout
-            return catchingRoot.findViewById(R.id.catch_list)
+            return catching.multipleStatusView.contentView.findViewById(R.id.catch_list)
+        }
+
+        fun getCatchingSearchBar(): MaterialSearchView {
+            return catching.multipleStatusView.contentView.findViewById(R.id.search_bar)
         }
     }
 }

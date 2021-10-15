@@ -46,4 +46,6 @@
     <string name="encode">加密</string>
     <string name="decode">解密</string>
     <string name="warn_input_key">请输入密钥(留空将自动尝试密钥)</string>
+    <string name="fillter">过滤</string>
+    <string name="search_hint_cmd">请输入要过滤的CMD</string>
 </resources>

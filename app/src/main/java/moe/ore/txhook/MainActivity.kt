@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import android.view.animation.Animation
 
 import android.view.animation.TranslateAnimation
+import com.xuexiang.xui.widget.searchview.MaterialSearchView
 import moe.ore.txhook.helper.ThreadManager
 import kotlin.concurrent.thread
 
@@ -50,6 +51,8 @@ class MainActivity : BaseActivity() {
             }
         }
     }
+
+    private var onSearch = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -95,6 +98,7 @@ class MainActivity : BaseActivity() {
         } }
 
         val deleteAllButton = binding.deleteAll
+        val searchButton = binding.searchView
         viewPager.addOnPageChangeListener(object :ViewPager.OnPageChangeListener {
             private var mHiddenAction: TranslateAnimation = TranslateAnimation(
                 Animation.RELATIVE_TO_SELF,
@@ -126,8 +130,15 @@ class MainActivity : BaseActivity() {
                             deleteAllButton.startAnimation(mShowAction)
                             deleteAllButton.visibility = VISIBLE
                         }
+
+                        searchButton.visibility = VISIBLE
+
                     }
                     1 -> {
+
+                        searchButton.visibility = GONE
+                        TXApp.getCatchingSearchBar().closeSearch()
+
                         if (deleteAllButton.visibility == INVISIBLE) {
                             deleteAllButton.clearAnimation()
                             deleteAllButton.startAnimation(mShowAction)
@@ -136,13 +147,17 @@ class MainActivity : BaseActivity() {
                         fab.hide()
                     }
                     else -> {
-                        fab.hide()
+                        searchButton.visibility = GONE
+                        TXApp.getCatchingSearchBar().closeSearch()
+
                         if (deleteAllButton.visibility == VISIBLE) {
                             deleteAllButton.clearAnimation()
                             deleteAllButton.startAnimation(mHiddenAction)
                             deleteAllButton.visibility = INVISIBLE
                         }
+                        fab.hide()
                     }
+
                 }
             }
         })
@@ -160,7 +175,36 @@ class MainActivity : BaseActivity() {
                 }
             }
 
+        }
 
+        searchButton.setOnClickListener {
+            onSearch = if (onSearch) {
+                searchButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_search_off_24))
+                false
+            } else {
+                searchButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_search_24))
+                true
+            }
+
+            TXApp.getCatchingSearchBar().also {
+                it.visibility = if(onSearch) {
+                    it.showSearch(true)
+                    VISIBLE
+                } else {
+                    it.closeSearch()
+                    GONE
+                }
+            }.setOnSearchViewListener(object : MaterialSearchView.SearchViewListener {
+                override fun onSearchViewShown() {
+                    onSearch = true
+                    searchButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_search_24))
+                }
+
+                override fun onSearchViewClosed() {
+                    onSearch = false
+                    searchButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_search_off_24))
+                }
+            })
         }
 
         inputActivity()
@@ -176,6 +220,7 @@ class MainActivity : BaseActivity() {
                 val services = ProtocolDatas.getServices()
                 runOnUiThread {
                     if (services.isNotEmpty()) {
+                        toast.show("刷新成功：${services.size}")
                         adapter?.setItemFirst(services)
                         adapter?.notifyDataSetChanged()
                         TXApp.catching.multipleStatusView.showContent()

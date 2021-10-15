@@ -2,17 +2,14 @@ package moe.ore.txhook.datas
 
 import android.os.Environment
 import de.robv.android.xposed.XposedBridge.log
-import moe.ore.tars.TarsBase
 import moe.ore.tars.TarsInputStream
-import moe.ore.tars.TarsOutputStream
 import moe.ore.txhook.catching.FromService
-import moe.ore.txhook.catching.FromSource
 import moe.ore.txhook.catching.PacketService
 import moe.ore.txhook.catching.ToService
 import moe.ore.txhook.helper.EMPTY_BYTE_ARRAY
 import moe.ore.txhook.helper.ThreadManager
 import moe.ore.txhook.helper.fastTry
-import moe.ore.util.FileUtil
+import moe.ore.txhook.helper.FileUtil
 import java.io.File
 import java.util.*
 import kotlin.collections.ArrayList
@@ -20,7 +17,8 @@ import kotlin.collections.ArrayList
 object ProtocolDatas {
     private var lastCheckTime: Long = 0
 
-    private val dataPath = Environment.getExternalStorageDirectory().absolutePath + "/TXHook/"
+    @JvmStatic
+    val dataPath = Environment.getExternalStorageDirectory().absolutePath + "/TXHook/"
 
     private val PATH_VALUE = dataPath + "values/"
 

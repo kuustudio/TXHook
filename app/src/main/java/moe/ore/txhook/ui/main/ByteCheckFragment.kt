@@ -11,7 +11,6 @@ import moe.ore.txhook.R
 import moe.ore.txhook.databinding.FragmentByteCheckBinding
 import moe.ore.txhook.databinding.FragmentCryptorBinding
 import moe.ore.txhook.databinding.FragmentTransformBinding
-import moe.ore.txhook.datas.PacketInfoData
 import moe.ore.txhook.datas.ProtocolDatas
 import moe.ore.txhook.helper.*
 import moe.ore.txhook.more.copyText
@@ -179,11 +178,23 @@ class ByteCheckFragment(private val sectionNumber: Int) : Fragment() {
                                     }.forEach {
                                         val out = TeaUtil.decrypt(data, it)
                                         if (out != null) {
+                                            key.setText(it.toString())
                                             output.setText(out.toHexString())
                                             isSuccess = true
+                                            toast.show("解密成功，密钥已展出：sharekey")
                                             return@forEach
                                         }
                                     }
+
+                                    /*
+                                    if (!isSuccess) {
+                                        ProtocolDatas.get
+                                        key.setText(it.toString())
+                                        output.setText(out.toHexString())
+                                        isSuccess = true
+                                        toast.show("解密成功，密钥已展出 尝试d2")
+                                    } */
+
 
                                     if (!isSuccess) toast.show("解密失败：无对应密钥")
 

@@ -19,7 +19,7 @@
  *
  */
 
-package moe.ore.util
+package moe.ore.txhook.helper
 
 import java.io.File
 import java.io.FileOutputStream

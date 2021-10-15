@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
+import androidx.core.view.forEach
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.xuexiang.xui.XUI
@@ -29,15 +30,20 @@ import moe.ore.txhook.datas.PacketInfoData
 import moe.ore.txhook.datas.ProtocolDatas
 import moe.ore.txhook.helper.toByteReadPacket
 import moe.ore.txhook.helper.toHexString
-import moe.ore.txhook.more.CookieBars
-import moe.ore.txhook.more.config
-import moe.ore.txhook.more.copyText
-import moe.ore.txhook.more.toast
 import moe.ore.txhook.ui.list.CatchingBaseAdapter
 import com.xuexiang.xui.widget.grouplist.XUICommonListItemView.ACCESSORY_TYPE_SWITCH
 import moe.ore.txhook.ByteCheckActivity
 import moe.ore.txhook.R
 import moe.ore.txhook.databinding.FragmentToolsBinding
+import com.xuexiang.xui.widget.searchview.MaterialSearchView
+
+import com.xuexiang.xui.utils.SnackbarUtils
+
+import com.xuexiang.xui.widget.searchview.MaterialSearchView.SearchViewListener
+import moe.ore.txhook.helper.ThreadManager
+import moe.ore.txhook.more.*
+import java.io.File
+
 
 /**
  * A placeholder fragment containing a simple view.
@@ -70,8 +76,9 @@ class PlaceholderFragment(private val sectionNumber: Int) : Fragment() {
                     }
                 }
 
+                val adapter = CatchingBaseAdapter(TXApp.catchingList)
                 val listView = TXApp.getCatchingList()
-                listView.adapter = CatchingBaseAdapter(TXApp.catchingList)
+                listView.adapter = adapter
                 listView.onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
                     val service = parent.getItemAtPosition(position) as PacketService
                     val startIntent = Intent(XUI.getContext(), PacketInfoActivity::class.java)
@@ -106,7 +113,62 @@ class PlaceholderFragment(private val sectionNumber: Int) : Fragment() {
                     })
                     startActivity(startIntent)
                 }
+
                 if (TXApp.catchingList.isEmpty()) statusView.showEmpty() else statusView.showContent()
+
+                TXApp.getCatchingSearchBar().also { mSearchView ->
+                    mSearchView.setVoiceSearch(false)
+                    mSearchView.setEllipsize(true)
+                    mSearchView.setOnQueryTextListener(object : MaterialSearchView.OnQueryTextListener {
+                        override fun onQueryTextSubmit(query: String): Boolean {
+                            toast.show("开始过滤，模式：正则|包含|等于")
+
+                            var run = true
+
+                            val dialog = MaterialDialog.Builder(context!!)
+                                .iconRes(R.drawable.icon_warning)
+                                .limitIconToDefaultSize()
+                                .title("包名过滤")
+                                .content("正在过滤结果...")
+                                .progress(true, 0)
+                                .progressIndeterminateStyle(false)
+                                .negativeText("取消")
+                                .onNegative { dialog, _ ->
+                                    dialog.dismiss()
+                                    run = false
+                                    toast.show("取消过滤")
+                                }
+                                .show()
+
+                            ThreadManager[0].addTask {
+                                val regex = query.toRegex()
+                                val result = arrayListOf<PacketService>()
+
+                                TXApp.catchingList.forEach {
+                                    if (run) {
+                                        val cmd = if (it.to) it.toToService().cmd else it.toFromService().cmd
+                                        if (query == cmd || cmd.contains(query, true) || regex.matches(cmd)) {
+                                            result.add(it)
+                                        }
+                                    } else return@forEach
+                                }
+
+                                if (run) activity?.runOnUiThread {
+                                    dialog.dismiss()
+                                    toast.show("过滤成功：${result.size}")
+                                    adapter.setItemFirst(result)
+                                }
+
+                            }
+
+                            return false
+                        }
+
+                        override fun onQueryTextChange(newText: String): Boolean {
+                            return false
+                        }
+                    })
+                }
 
                 return binding.root
             }
@@ -312,6 +374,9 @@ class PlaceholderFragment(private val sectionNumber: Int) : Fragment() {
                     ProtocolDatas.setSetting(setting)
                 }
 
+                val cleanCache = group.createItemView("清空所有缓存")
+                cleanCache.accessoryType = ACCESSORY_TYPE_CHEVRON
+
                 XUIGroupListView.newSection(context)
                     .setTitle("基础设置")
                     .addItemView(maxPacketSizeItem) {
@@ -336,6 +401,10 @@ class PlaceholderFragment(private val sectionNumber: Int) : Fragment() {
                     }
                     .addItemView(changeViewRefreshItem, null)
                     .addItemView(autoLoginMerge, null)
+                    .addItemView(cleanCache) {
+                        val dataPath = File(ProtocolDatas.dataPath)
+                        dataPath.deleteRecursively()
+                    }
                     .addTo(group)
 
                 return binding.root

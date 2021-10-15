@@ -77,10 +77,10 @@ object StartupHook {
             val mine = StartupHook::class.java.classLoader!! // 获取我的loader
             var curr = fParent[mine] as ClassLoader? // 获取我的父loader
             if (curr == null) curr = XposedBridge::class.java.classLoader // 如果我的父loader不存在，那么就获取xposed的loader（解决虚拟空间运行问题）
-            if (curr!!.javaClass.name != HybridClassLoader::class.java.name) {
+            // if (curr!!.javaClass.name != HybridClassLoader::class.java.name) {
                 // fParent[mine] = HybridClassLoader(curr, classLoader)
                 // 尝试修复bug
-            }
+            // }
         } catch (e: Exception) {
             log(e)
         }

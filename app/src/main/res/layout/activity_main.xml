@@ -32,15 +32,32 @@
 
             </LinearLayout>
 
-            <ImageButton
-                android:id="@+id/delete_all"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+            <LinearLayout
                 android:layout_alignParentEnd="true"
-                android:gravity="center"
-                android:minHeight="?actionBarSize"
-                android:padding="@dimen/appbar_padding"
-                android:src="@drawable/ic_baseline_delete_forever_24"/>
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <ImageButton
+                    android:id="@+id/search_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:minHeight="?actionBarSize"
+                    android:padding="@dimen/appbar_padding"
+                    android:src="@drawable/ic_baseline_search_off_24"
+                    android:contentDescription="@string/fillter" />
+
+                <ImageButton
+                    android:id="@+id/delete_all"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:minHeight="?actionBarSize"
+                    android:padding="@dimen/appbar_padding"
+                    android:src="@drawable/ic_baseline_delete_forever_24"
+                    android:contentDescription="@string/clear_all" />
+            </LinearLayout>
+
         </RelativeLayout>
 
         <com.google.android.material.tabs.TabLayout
