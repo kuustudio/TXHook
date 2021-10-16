@@ -2,7 +2,7 @@
 
 ## 运行事项
 
-该软件适合在安卓8.0以上系统运行，理论支持安卓7.0以上，但是很多问题。[模拟器安卓9xposed教程](https://github.com/fuqiuluo/TXHook/blob/master/tutorial/android8_in_pc.md)
+该软件适合在安卓8.0以上系统运行，理论支持安卓7.0以上，但是很多问题。加群交流问题吧！（702991373）
 
 ## 已实现功能
 
