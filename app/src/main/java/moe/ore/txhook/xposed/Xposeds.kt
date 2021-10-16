@@ -8,13 +8,17 @@ import de.robv.android.xposed.callbacks.XCallback
 import moe.ore.txhook.more.logger
 import java.lang.Exception
 
-fun Class<*>.callMethod(funName: String?, vararg args: Any?): Any? {
+fun Class<*>?.callMethod(funName: String?, vararg args: Any?): Any? {
     try {
         return XposedHelpers.callStaticMethod(this, funName, *args)
     } catch (e: Exception) {
         log(e)
     }
     return null
+}
+
+fun callStaticMethod(obj:  Class<*>?, funName: String?, vararg args: Any?): Any? {
+    return XposedHelpers.callStaticMethod(obj, funName, *args)
 }
 
 fun callMethod(obj: Any?, funName: String?, vararg args: Any?): Any? {

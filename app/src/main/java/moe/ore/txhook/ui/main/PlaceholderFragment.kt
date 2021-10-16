@@ -2,12 +2,12 @@ package moe.ore.txhook.ui.main
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
 import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
-import androidx.core.view.forEach
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.xuexiang.xui.XUI
@@ -37,9 +37,6 @@ import moe.ore.txhook.R
 import moe.ore.txhook.databinding.FragmentToolsBinding
 import com.xuexiang.xui.widget.searchview.MaterialSearchView
 
-import com.xuexiang.xui.utils.SnackbarUtils
-
-import com.xuexiang.xui.widget.searchview.MaterialSearchView.SearchViewListener
 import moe.ore.txhook.helper.ThreadManager
 import moe.ore.txhook.helper.fastTry
 import moe.ore.txhook.more.*
@@ -49,7 +46,7 @@ import java.io.File
 /**
  * A placeholder fragment containing a simple view.
  */
-class PlaceholderFragment(private val sectionNumber: Int) : Fragment() {
+class PlaceholderFragment(private val sectionNumber: Int, private val uiHandler: Handler) : Fragment() {
     private lateinit var pageViewModel: PageViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,9 +63,7 @@ class PlaceholderFragment(private val sectionNumber: Int) : Fragment() {
         // println("unknown: $sectionNumber")
         when(sectionNumber) {
             1 -> {
-                val binding = FragmentCatchBinding.inflate(inflater, container, false).also {
-                    TXApp.catching = it
-                }
+                val binding = FragmentCatchBinding.inflate(inflater, container, false).also { TXApp.catching = it }
 
                 val statusView = binding.multipleStatusView
                 statusView.setOnRetryClickListener {
@@ -80,9 +75,12 @@ class PlaceholderFragment(private val sectionNumber: Int) : Fragment() {
                 val adapter = CatchingBaseAdapter(TXApp.catchingList)
                 val listView = TXApp.getCatchingList()
                 listView.adapter = adapter
-                listView.onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
+
+                listView.onItemClickListener = AdapterView.OnItemClickListener { parent, _, position, _ ->
+
                     val service = parent.getItemAtPosition(position) as PacketService
                     val startIntent = Intent(XUI.getContext(), PacketInfoActivity::class.java)
+
                     startIntent.putExtra("data", PacketInfoData().apply {
                         if (service.from) {
                             val from = service.toFromService()
@@ -95,7 +93,6 @@ class PlaceholderFragment(private val sectionNumber: Int) : Fragment() {
                             time = from.time
                             sessionSize = from.sessionId.size
                             sessionId = from.sessionId
-
                         } else {
                             val to = service.toToService()
                             fromSource = to.fromSource
@@ -179,36 +176,23 @@ class PlaceholderFragment(private val sectionNumber: Int) : Fragment() {
             2 -> {
                 val binding = FragmentDataBinding.inflate(inflater, container, false)
 
-                val copyListener = View.OnClickListener { (it as XUICommonListItemView).let { itemView ->
-                    context?.copyText(itemView.detailText.toString())
+                val copyListener = View.OnClickListener { (it as XUICommonListItemView).let { item ->
+                    context?.copyText(item.detailText.toString())
                 } }
 
-                val groupListView = binding.groupListView
+                val baseInfoList = binding.groupListView
 
-                val appIdItem = groupListView.createItemView("AppId")
-                appIdItem.detailText = ProtocolDatas.getAppId().toString()
-
-                val maxPackageSizeItem = groupListView.createItemView("MaxPackageSize")
-                maxPackageSizeItem.detailText = ProtocolDatas.getMaxPackageSize().toString()
-
-                val publicKeyItem = groupListView.createItemView("PublicKey")
-                publicKeyItem.detailText = "点击查看详细"
-
-                val shareKeyItem = groupListView.createItemView("ShareKey")
-                shareKeyItem.detailText = "点击查看详细"
-
-                val guidItem = groupListView.createItemView("Guid")
-                guidItem.detailText = ProtocolDatas.getGUID().toHexString()
-
-                val ksidItem = groupListView.createItemView("Ksid")
-                ksidItem.detailText = ProtocolDatas.getKsid().toHexString()
-
-                val qimeiItem = groupListView.createItemView("QImei")
-                qimeiItem.detailText = ProtocolDatas.getQIMEI().toHexString()
+                val aidItem = baseInfoList.addTextItem("AppId", ProtocolDatas.getAppId().toString())
+                val maxPackageSizeItem = baseInfoList.addTextItem("MaxPackageSize", ProtocolDatas.getMaxPackageSize().toString())
+                val publicKeyItem = baseInfoList.addTextItem("PublicKey", "点击查看详细")
+                val shareKeyItem = baseInfoList.addTextItem("ShareKey", "点击查看详细")
+                val guidItem = baseInfoList.addTextItem("Guid", ProtocolDatas.getGUID().toHexString())
+                val ksidItem = baseInfoList.addTextItem("Ksid", ProtocolDatas.getKsid().toHexString())
+                val qimeiItem = baseInfoList.addTextItem("QImei", ProtocolDatas.getQIMEI().toHexString())
 
                 XUIGroupListView.newSection(context)
                     .setTitle("基础信息")
-                    .addItemView(appIdItem, copyListener)
+                    .addItemView(aidItem, copyListener)
                     .addItemView(maxPackageSizeItem, copyListener)
                     .addItemView(publicKeyItem) {
                         val list = ProtocolDatas.getKeyList()
@@ -249,39 +233,39 @@ class PlaceholderFragment(private val sectionNumber: Int) : Fragment() {
                     .addItemView(guidItem, copyListener)
                     .addItemView(ksidItem, copyListener)
                     .addItemView(qimeiItem, copyListener)
-                    .addTo(groupListView)
+                    .addTo(baseInfoList)
 
                 val lastUin = String(ProtocolDatas.getId("last_uin"))
                 val reader = ProtocolDatas.getId("$lastUin-AccountKey").toByteReadPacket()
 
-                val uinItem = groupListView.createItemView("Uin")
+                val uinItem = baseInfoList.createItemView("Uin")
                 uinItem.detailText = lastUin
 
                 if (reader.hasBytes(18)) {
                     reader.discardExact(reader.readShort().toInt())
 
-                    val a1Item = groupListView.createItemView("A1")
+                    val a1Item = baseInfoList.createItemView("A1")
                     a1Item.detailText = reader.readBytes(reader.readShort().toInt()).toHexString()
 
-                    val a2Item = groupListView.createItemView("A2")
+                    val a2Item = baseInfoList.createItemView("A2")
                     a2Item.detailText = reader.readBytes(reader.readShort().toInt()).toHexString()
 
-                    val a3Item = groupListView.createItemView("A3")
+                    val a3Item = baseInfoList.createItemView("A3")
                     a3Item.detailText = reader.readBytes(reader.readShort().toInt()).toHexString()
 
-                    val d1Item = groupListView.createItemView("D1")
+                    val d1Item = baseInfoList.createItemView("D1")
                     d1Item.detailText = reader.readBytes(reader.readShort().toInt()).toHexString()
 
-                    val d2Item = groupListView.createItemView("D2")
+                    val d2Item = baseInfoList.createItemView("D2")
                     d2Item.detailText = reader.readBytes(reader.readShort().toInt()).toHexString()
 
-                    val s2Item = groupListView.createItemView("S2")
+                    val s2Item = baseInfoList.createItemView("S2")
                     s2Item.detailText = reader.readBytes(reader.readShort().toInt()).toHexString()
 
-                    val keyItem = groupListView.createItemView("Key")
+                    val keyItem = baseInfoList.createItemView("Key")
                     keyItem.detailText = reader.readBytes(reader.readShort().toInt()).toHexString()
 
-                    val cookieItem = groupListView.createItemView("Cookie")
+                    val cookieItem = baseInfoList.createItemView("Cookie")
                     cookieItem.detailText = reader.readBytes(reader.readShort().toInt()).toHexString()
 
                     XUIGroupListView.newSection(context)
@@ -295,31 +279,31 @@ class PlaceholderFragment(private val sectionNumber: Int) : Fragment() {
                         .addItemView(s2Item, copyListener)
                         .addItemView(keyItem, copyListener)
                         .addItemView(cookieItem, copyListener)
-                        .addTo(groupListView)
+                        .addTo(baseInfoList)
                 }
 
-                val svnItem = groupListView.createItemView("SvnVersion")
+                val svnItem = baseInfoList.createItemView("SvnVersion")
                 svnItem.detailText = ProtocolDatas.getSVNVersion()
 
-                val releaseTimeItem = groupListView.createItemView("ReleaseTime")
+                val releaseTimeItem = baseInfoList.createItemView("ReleaseTime")
                 releaseTimeItem.detailText = ProtocolDatas.getReleaseTime()
 
-                val androidIdItem = groupListView.createItemView("AndroidId")
+                val androidIdItem = baseInfoList.createItemView("AndroidId")
                 androidIdItem.detailText = ProtocolDatas.getAndroidId()
 
-                val macItem = groupListView.createItemView("MacAddress")
+                val macItem = baseInfoList.createItemView("MacAddress")
                 macItem.detailText = ProtocolDatas.getMac()
 
-                val ssidItem = groupListView.createItemView("SSID")
+                val ssidItem = baseInfoList.createItemView("SSID")
                 ssidItem.detailText = ProtocolDatas.getSsid()
 
-                val bssidItem = groupListView.createItemView("BSSID")
+                val bssidItem = baseInfoList.createItemView("BSSID")
                 bssidItem.detailText = ProtocolDatas.getBSsid()
 
-                val netTypeItem = groupListView.createItemView("NetType")
+                val netTypeItem = baseInfoList.createItemView("NetType")
                 netTypeItem.detailText = ProtocolDatas.getNetType().toString()
 
-                val logDirItem = groupListView.createItemView("LogPath")
+                val logDirItem = baseInfoList.createItemView("LogPath")
                 logDirItem.detailText = ProtocolDatas.getWloginLogDir()
 
                 XUIGroupListView.newSection(context)
@@ -332,7 +316,7 @@ class PlaceholderFragment(private val sectionNumber: Int) : Fragment() {
                     .addItemView(bssidItem, copyListener)
                     .addItemView(netTypeItem, copyListener)
                     .addItemView(logDirItem, copyListener)
-                    .addTo(groupListView)
+                    .addTo(baseInfoList)
 
                 return binding.root
             }
@@ -429,16 +413,12 @@ class PlaceholderFragment(private val sectionNumber: Int) : Fragment() {
          * number.
          */
         @JvmStatic
-        fun newInstance(sectionNumber: Int): PlaceholderFragment {
-            return PlaceholderFragment(sectionNumber).apply {
+        fun newInstance(sectionNumber: Int, uiHandler: Handler): PlaceholderFragment {
+            return PlaceholderFragment(sectionNumber, uiHandler).apply {
                 arguments = Bundle().apply {
                     putInt(ARG_SECTION_NUMBER, sectionNumber)
                 }
             }
         }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
     }
 }

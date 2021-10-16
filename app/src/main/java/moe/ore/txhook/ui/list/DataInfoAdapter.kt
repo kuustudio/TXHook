@@ -54,8 +54,11 @@ class DataInfoAdapter(
             DataType.BYTES -> {
                 viewHolder.key.text = key.key.toHexString()
             }
-            else -> {
+            DataType.STR -> {
                 viewHolder.key.text = String(key.key)
+            }
+            else -> {
+                error("unknown key type")
             }
         }
 

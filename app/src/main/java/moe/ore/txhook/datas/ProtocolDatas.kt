@@ -14,6 +14,11 @@ import java.io.File
 import java.util.*
 import kotlin.collections.ArrayList
 
+/**
+ * 这里代码很乱！！！！！！
+ *
+ * 本人不打算维护这里的代码
+ */
 object ProtocolDatas {
     private var lastCheckTime: Long = 0
 

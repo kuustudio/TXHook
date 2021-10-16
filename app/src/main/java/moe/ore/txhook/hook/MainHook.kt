@@ -18,6 +18,7 @@ import moe.ore.txhook.hook.Initiator.load
 import moe.ore.txhook.xposed.callMethod
 import moe.ore.txhook.xposed.hookMethod
 import moe.ore.txhook.helper.*
+import moe.ore.txhook.xposed.callStaticMethod
 
 
 object MainHook {
@@ -113,7 +114,12 @@ object MainHook {
     }
 
     private fun hookExec(ctx: Context) {
-        ProtocolDatas.setQIMEI(JavaCaster.castToBytes(oicqUtilClz!!.callMethod("get_qimei", ctx)))
+        // 新的qimei获取方式
+        ProtocolDatas.setQIMEI(
+            (callStaticMethod(load("com.tencent.beacon.event.UserAction"), "getQIMEI") as String).hex2ByteArray()
+        )
+
+        // 这里无法获取到QIMEI的哦！ProtocolDatas.setQIMEI(JavaCaster.castToBytes(oicqUtilClz!!.callMethod("get_qimei", ctx)))
         ProtocolDatas.setGUID(JavaCaster.castToBytes(oicqUtilClz.callMethod("generateGuid", ctx)))
         ProtocolDatas.setKsid(JavaCaster.castToBytes(oicqUtilClz.callMethod("get_ksid", ctx)))
         ProtocolDatas.setWloginLogDir(oicqUtilClz.callMethod("getLogDir", ctx) as? String)

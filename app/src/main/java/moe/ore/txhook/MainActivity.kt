@@ -1,24 +1,19 @@
 package moe.ore.txhook
 
 import android.Manifest
-import android.annotation.SuppressLint
-import android.content.pm.ActivityInfo
 import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.os.Message
-import android.transition.Slide
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View.*
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.viewpager.widget.ViewPager
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import com.xuexiang.xui.widget.dialog.materialdialog.MaterialDialog
 import com.xuexiang.xui.widget.guidview.GuideCaseView
-import moe.ore.txhook.app.SHARED_IS_FIRST
 import moe.ore.txhook.app.TXApp
 import moe.ore.txhook.databinding.ActivityMainBinding
 import moe.ore.txhook.more.*
@@ -30,10 +25,11 @@ import java.util.concurrent.atomic.AtomicBoolean
 import android.view.animation.Animation
 
 import android.view.animation.TranslateAnimation
+import androidx.appcompat.content.res.AppCompatResources
 import com.xuexiang.xui.widget.searchview.MaterialSearchView
 import moe.ore.txhook.helper.ThreadManager
-import kotlin.concurrent.thread
 
+import android.view.View
 
 class MainActivity : BaseActivity() {
     // private var isCatching: Boolean = false
@@ -53,6 +49,17 @@ class MainActivity : BaseActivity() {
     }
 
     private var onSearch = false
+    private val uiHandler: Handler by lazy {
+        object : Handler(mainLooper) {
+            override fun handleMessage(msg: Message) {
+                when(msg.what) {
+                    UI_CHANGE_SEARCH_BUTTON -> {
+
+                    }
+                }
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,7 +67,7 @@ class MainActivity : BaseActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val sectionsPagerAdapter = SectionsPagerAdapter(this, supportFragmentManager)
+        val sectionsPagerAdapter = SectionsPagerAdapter(this, uiHandler, supportFragmentManager)
         val viewPager: ViewPager = binding.viewPager
         viewPager.adapter = sectionsPagerAdapter
 
@@ -73,44 +80,14 @@ class MainActivity : BaseActivity() {
         tabs.setupWithViewPager(viewPager)
         val fab: FloatingActionButton = binding.fab
 
-        fab.setOnClickListener { (it as FloatingActionButton).also { view ->
-            changeContent(true)
-            /*
-            if (isCatching) {
-                isCatching = false
-                val colorStateList = ContextCompat.getColorStateList(
-                    applicationContext, R.color.tx_nocatching
-                )
-                view.backgroundTintMode = PorterDuff.Mode.SRC_ATOP
-                view.backgroundTintList = colorStateList
-                view.setImageResource(R.drawable.icon_nocatch)
+        fab.setOnClickListener { (it as FloatingActionButton).also { changeContent(true) } }
 
-            } else {
-                isCatching = true
-                val colorStateList = ContextCompat.getColorStateList(
-                    applicationContext, R.color.tx_catching
-                )
-                view.backgroundTintMode = PorterDuff.Mode.SRC_ATOP
-                view.backgroundTintList = colorStateList
-                view.setImageResource(R.drawable.icon_catch)
-
-            } */
-        } }
-
-        val deleteAllButton = binding.deleteAll
+        val deleteButton = binding.deleteAll
         val searchButton = binding.searchView
+
         viewPager.addOnPageChangeListener(object :ViewPager.OnPageChangeListener {
-            private var mHiddenAction: TranslateAnimation = TranslateAnimation(
-                Animation.RELATIVE_TO_SELF,
-                0.0f, Animation.RELATIVE_TO_SELF, 0.0f,
-                Animation.RELATIVE_TO_SELF, 0.0f, Animation.RELATIVE_TO_SELF,
-                -1.0f
-            )
-            private var mShowAction: TranslateAnimation = TranslateAnimation(
-                Animation.RELATIVE_TO_SELF, 0.0f,
-                Animation.RELATIVE_TO_SELF, 0.0f, Animation.RELATIVE_TO_SELF,
-                -1.0f, Animation.RELATIVE_TO_SELF, -0.0f
-            )
+            private var mHiddenAction: TranslateAnimation = TranslateAnimation(Animation.RELATIVE_TO_SELF, 0.0f, Animation.RELATIVE_TO_SELF, 0.0f, Animation.RELATIVE_TO_SELF, 0.0f, Animation.RELATIVE_TO_SELF, -1.0f)
+            private var mShowAction: TranslateAnimation = TranslateAnimation(Animation.RELATIVE_TO_SELF, 0.0f, Animation.RELATIVE_TO_SELF, 0.0f, Animation.RELATIVE_TO_SELF, -1.0f, Animation.RELATIVE_TO_SELF, -0.0f)
 
             init {
                 mShowAction.repeatMode = Animation.REVERSE
@@ -120,49 +97,44 @@ class MainActivity : BaseActivity() {
 
             override fun onPageScrollStateChanged(state: Int) {}
             override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {}
+
+            private fun changeDeleteButton(isShow: Boolean) {
+                if (deleteButton.visibility == INVISIBLE && isShow) {
+                    deleteButton.clearAnimation()
+                    deleteButton.startAnimation(mShowAction)
+                    deleteButton.visibility = VISIBLE
+                } else if (deleteButton.visibility == VISIBLE && !isShow) {
+                    deleteButton.clearAnimation()
+                    deleteButton.startAnimation(mHiddenAction)
+                    deleteButton.visibility = INVISIBLE
+                }
+            }
+
             override fun onPageSelected(position: Int) {
                 when (position) {
                     0 -> {
                         if (config.changeViewRefresh) changeContent() // 不点击自动触发
-                        fab.show()
-                        if (deleteAllButton.visibility == INVISIBLE) {
-                            deleteAllButton.clearAnimation()
-                            deleteAllButton.startAnimation(mShowAction)
-                            deleteAllButton.visibility = VISIBLE
-                        }
-
+                        fab.show() // 显示fab按钮
+                        changeDeleteButton(true) // 用于清空抓包列表
                         searchButton.visibility = VISIBLE
-
                     }
                     1 -> {
-
                         searchButton.visibility = GONE
                         TXApp.getCatchingSearchBar().closeSearch()
-
-                        if (deleteAllButton.visibility == INVISIBLE) {
-                            deleteAllButton.clearAnimation()
-                            deleteAllButton.startAnimation(mShowAction)
-                            deleteAllButton.visibility = VISIBLE
-                        }
+                        changeDeleteButton(true) // 用于清空KEY列表
                         fab.hide()
                     }
                     else -> {
                         searchButton.visibility = GONE
                         TXApp.getCatchingSearchBar().closeSearch()
-
-                        if (deleteAllButton.visibility == VISIBLE) {
-                            deleteAllButton.clearAnimation()
-                            deleteAllButton.startAnimation(mHiddenAction)
-                            deleteAllButton.visibility = INVISIBLE
-                        }
+                        changeDeleteButton(false)
                         fab.hide()
                     }
-
                 }
             }
         })
 
-        deleteAllButton.setOnClickListener {
+        deleteButton.setOnClickListener {
             when (viewPager.currentItem) {
                 0 -> {
                     ProtocolDatas.clearService()
@@ -174,17 +146,33 @@ class MainActivity : BaseActivity() {
                     toast.show("KEYS清理成功")
                 }
             }
+        }
 
+        searchButton.setOnLongClickListener {
+            MaterialDialog.Builder(this).title("高级过滤").items("包体包含过滤", "SEQ大小过滤", "包体大小过滤").itemsCallback { dialog: MaterialDialog?, _: View?, which: Int, _: CharSequence ->
+                dialog?.dismiss()
+                when(which) {
+                    0 -> {
+
+
+
+                    }
+                    else -> error("未知高级过滤选项")
+                }
+            }.show()
+            return@setOnLongClickListener false
         }
 
         searchButton.setOnClickListener {
             if (TXApp.catchingList.isNotEmpty()) {
-                onSearch = if (onSearch) {
-                    searchButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_search_off_24))
-                    false
+                if (onSearch) {
+                    searchButton.setImageDrawable(AppCompatResources.getDrawable(this, R.drawable.ic_baseline_search_off_24))
+                    onSearch = false
+
                 } else {
-                    searchButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_search_24))
-                    true
+                    searchButton.setImageDrawable(AppCompatResources.getDrawable(this, R.drawable.ic_baseline_search_24))
+                    onSearch = true
+
                 }
 
                 TXApp.getCatchingSearchBar().also {
@@ -198,12 +186,12 @@ class MainActivity : BaseActivity() {
                 }.setOnSearchViewListener(object : MaterialSearchView.SearchViewListener {
                     override fun onSearchViewShown() {
                         onSearch = true
-                        searchButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_search_24))
+                        searchButton.setImageDrawable(AppCompatResources.getDrawable(this@MainActivity, R.drawable.ic_baseline_search_24))
                     }
 
                     override fun onSearchViewClosed() {
                         onSearch = false
-                        searchButton.setImageDrawable(getDrawable(R.drawable.ic_baseline_search_off_24))
+                        searchButton.setImageDrawable(AppCompatResources.getDrawable(this@MainActivity, R.drawable.ic_baseline_search_off_24))
                     }
                 })
             } else toast.show("当前无数据无法使用过滤功能")
@@ -238,10 +226,7 @@ class MainActivity : BaseActivity() {
         }
     }
 
-    @SuppressLint("SourceLockedOrientationActivity")
     private fun inputActivity() = requestPermission {
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-
         // 权限全部申请成功才会执行这里的代码
         if (!config.isFirst) { // 是否是首次运行
             MaterialDialog.Builder(this)
@@ -311,6 +296,8 @@ class MainActivity : BaseActivity() {
     override fun needInitTheme(): Boolean = false
 
     companion object {
+        const val UI_CHANGE_SEARCH_BUTTON = 0 // 改变搜索按钮图标
+
         init {
             AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
         }
