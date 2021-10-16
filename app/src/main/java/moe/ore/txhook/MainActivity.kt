@@ -4,6 +4,7 @@ import android.Manifest
 import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
+import android.os.Looper
 import android.os.Message
 import android.view.Gravity
 import android.view.KeyEvent
@@ -30,13 +31,18 @@ import com.xuexiang.xui.widget.searchview.MaterialSearchView
 import moe.ore.txhook.helper.ThreadManager
 
 import android.view.View
+import android.widget.ImageButton
+import moe.ore.txhook.catching.PacketService
+import moe.ore.txhook.helper.DebugUtil
 
 class MainActivity : BaseActivity() {
     // private var isCatching: Boolean = false
     private val isChanging = AtomicBoolean(false)
-    private var adapter: CatchingBaseAdapter? = null
 
     private lateinit var binding: ActivityMainBinding
+    private var adapter: CatchingBaseAdapter? = null
+    private lateinit var searchButton: ImageButton
+    private var showingDialog: MaterialDialog? = null
 
     private var isExit = 0
     private val exitHandler: Handler by lazy {
@@ -49,17 +55,23 @@ class MainActivity : BaseActivity() {
     }
 
     private var onSearch = false
-    private val uiHandler: Handler by lazy {
-        object : Handler(mainLooper) {
-            override fun handleMessage(msg: Message) {
-                when(msg.what) {
-                    UI_CHANGE_SEARCH_BUTTON -> {
-
+    private val uiHandler: Handler by lazy { object :Handler(mainLooper) {
+        override fun handleMessage(msg: Message) {
+            when(msg.what) {
+                UI_CHANGE_SEARCH_BUTTON -> {
+                    if (msg.arg1 == 1) {
+                        searchButton.setImageDrawable(AppCompatResources.getDrawable(applicationContext, R.drawable.ic_baseline_search_24))
+                    } else {
+                        searchButton.setImageDrawable(AppCompatResources.getDrawable(applicationContext, R.drawable.ic_baseline_search_off_24))
                     }
                 }
+                UI_CHANGE_CATCHING_LIST -> {
+                    changeContent(false, DebugUtil.forcedConvert(msg.obj)!!)
+                }
+
             }
         }
-    }
+    } }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -83,7 +95,7 @@ class MainActivity : BaseActivity() {
         fab.setOnClickListener { (it as FloatingActionButton).also { changeContent(true) } }
 
         val deleteButton = binding.deleteAll
-        val searchButton = binding.searchView
+        this.searchButton = binding.searchView
 
         viewPager.addOnPageChangeListener(object :ViewPager.OnPageChangeListener {
             private var mHiddenAction: TranslateAnimation = TranslateAnimation(Animation.RELATIVE_TO_SELF, 0.0f, Animation.RELATIVE_TO_SELF, 0.0f, Animation.RELATIVE_TO_SELF, 0.0f, Animation.RELATIVE_TO_SELF, -1.0f)
@@ -153,8 +165,7 @@ class MainActivity : BaseActivity() {
                 dialog?.dismiss()
                 when(which) {
                     0 -> {
-
-
+                        toast.show("包体内容包含过滤")
 
                     }
                     else -> error("未知高级过滤选项")
@@ -164,50 +175,43 @@ class MainActivity : BaseActivity() {
         }
 
         searchButton.setOnClickListener {
-            if (TXApp.catchingList.isNotEmpty()) {
-                if (onSearch) {
-                    searchButton.setImageDrawable(AppCompatResources.getDrawable(this, R.drawable.ic_baseline_search_off_24))
-                    onSearch = false
+            val searchBar = TXApp.getCatchingSearchBar()
 
-                } else {
-                    searchButton.setImageDrawable(AppCompatResources.getDrawable(this, R.drawable.ic_baseline_search_24))
-                    onSearch = true
-
+            fun closeSearch() {
+                searchButton.setImageDrawable(AppCompatResources.getDrawable(this, R.drawable.ic_baseline_search_off_24))
+                onSearch = false
+                if (searchBar.isSearchOpen) {
+                    searchBar.closeSearch()
+                    searchBar.visibility = GONE
                 }
+            }
 
-                TXApp.getCatchingSearchBar().also {
-                    it.visibility = if(onSearch) {
-                        it.showSearch(true)
-                        VISIBLE
-                    } else {
-                        it.closeSearch()
-                        GONE
-                    }
-                }.setOnSearchViewListener(object : MaterialSearchView.SearchViewListener {
-                    override fun onSearchViewShown() {
-                        onSearch = true
-                        searchButton.setImageDrawable(AppCompatResources.getDrawable(this@MainActivity, R.drawable.ic_baseline_search_24))
-                    }
+            fun showSearch() {
+                searchButton.setImageDrawable(AppCompatResources.getDrawable(this, R.drawable.ic_baseline_search_24))
+                onSearch = true
+                if (!searchBar.isSearchOpen) {
+                    searchBar.showSearch()
+                    searchBar.visibility = VISIBLE
+                }
+            }
 
-                    override fun onSearchViewClosed() {
-                        onSearch = false
-                        searchButton.setImageDrawable(AppCompatResources.getDrawable(this@MainActivity, R.drawable.ic_baseline_search_off_24))
-                    }
-                })
+            if (TXApp.catchingList.isNotEmpty()) {
+                if (onSearch) closeSearch() else showSearch()
             } else toast.show("当前无数据无法使用过滤功能")
+
         }
 
         inputActivity()
     }
 
-    fun changeContent(isClick: Boolean = false) {
+    fun changeContent(isClick: Boolean = false, services: List<PacketService> = ProtocolDatas.getServices()) {
         if (!isChanging.get()) {
             isChanging.set(true)
 
             val catchingList = TXApp.getCatchingList()
             adapter = catchingList.adapter as CatchingBaseAdapter?
             ThreadManager.getInstance(0).addTask {
-                val services = ProtocolDatas.getServices()
+                // val services = ProtocolDatas.getServices()
                 runOnUiThread {
                     if (services.isNotEmpty()) {
                         toast.show("刷新成功：${services.size}")
@@ -297,10 +301,13 @@ class MainActivity : BaseActivity() {
 
     companion object {
         const val UI_CHANGE_SEARCH_BUTTON = 0 // 改变搜索按钮图标
+        const val UI_CHANGE_CATCHING_LIST = 1
 
         init {
             AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
         }
     }
 }
+
+
 

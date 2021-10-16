@@ -3,6 +3,7 @@ package moe.ore.txhook.ui.main
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
+import android.os.Message
 import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
@@ -19,8 +20,6 @@ import com.xuexiang.xui.widget.grouplist.XUICommonListItemView.ACCESSORY_TYPE_CH
 import com.xuexiang.xui.widget.grouplist.XUIGroupListView
 import kotlinx.io.core.discardExact
 import kotlinx.io.core.readBytes
-import moe.ore.txhook.JsonViewActivity
-import moe.ore.txhook.PacketInfoActivity
 import moe.ore.txhook.app.TXApp
 import moe.ore.txhook.catching.PacketService
 import moe.ore.txhook.databinding.FragmentCatchBinding
@@ -32,15 +31,15 @@ import moe.ore.txhook.helper.toByteReadPacket
 import moe.ore.txhook.helper.toHexString
 import moe.ore.txhook.ui.list.CatchingBaseAdapter
 import com.xuexiang.xui.widget.grouplist.XUICommonListItemView.ACCESSORY_TYPE_SWITCH
-import moe.ore.txhook.ByteCheckActivity
-import moe.ore.txhook.R
 import moe.ore.txhook.databinding.FragmentToolsBinding
 import com.xuexiang.xui.widget.searchview.MaterialSearchView
+import moe.ore.txhook.*
 
 import moe.ore.txhook.helper.ThreadManager
 import moe.ore.txhook.helper.fastTry
 import moe.ore.txhook.more.*
 import java.io.File
+import kotlin.concurrent.thread
 
 
 /**
@@ -114,48 +113,67 @@ class PlaceholderFragment(private val sectionNumber: Int, private val uiHandler:
 
                 if (TXApp.catchingList.isEmpty()) statusView.showEmpty() else statusView.showContent()
 
-                TXApp.getCatchingSearchBar().also { mSearchView ->
+                TXApp.getCatchingSearchBar().let { mSearchView ->
                     mSearchView.setVoiceSearch(false)
                     mSearchView.setEllipsize(true)
+                    mSearchView.setOnSearchViewListener(object : MaterialSearchView.SearchViewListener {
+                        override fun onSearchViewShown() {
+                            uiHandler.let {
+                                it.handleMessage(Message.obtain(it, MainActivity.UI_CHANGE_SEARCH_BUTTON, 1, 0))
+                            }
+                        }
+
+                        override fun onSearchViewClosed() {
+                            uiHandler.let {
+                                it.handleMessage(Message.obtain(it, MainActivity.UI_CHANGE_SEARCH_BUTTON, 0, 0))
+                            }
+                        }
+                    })
                     mSearchView.setOnQueryTextListener(object : MaterialSearchView.OnQueryTextListener {
                         override fun onQueryTextSubmit(query: String): Boolean {
                             toast.show("开始过滤，模式：正则|包含|等于")
 
                             var run = true
 
+                            val sourceList = TXApp.catchingList
                             val dialog = MaterialDialog.Builder(context!!)
-                                .iconRes(R.drawable.icon_warning)
+                                .iconRes(R.drawable.ic_baseline_manage_search_24)
                                 .limitIconToDefaultSize()
                                 .title("包名过滤")
                                 .content("正在过滤结果...")
-                                .progress(true, 0)
+                                .progress(false, sourceList.size)
                                 .progressIndeterminateStyle(false)
                                 .negativeText("取消")
                                 .onNegative { dialog, _ ->
                                     dialog.dismiss()
                                     run = false
                                     toast.show("取消过滤")
-                                }
-                                .show()
+                                }.show()
 
                             ThreadManager[0].addTask {
                                 fastTry {
                                     val regex = query.toRegex()
                                     val result = arrayListOf<PacketService>()
 
-                                    TXApp.catchingList.forEach {
+                                    sourceList.forEach {
                                         if (run) {
                                             val cmd = if (it.to) it.toToService().cmd else it.toFromService().cmd
                                             if (query == cmd || cmd.contains(query, true) || regex.matches(cmd)) {
                                                 result.add(it)
                                             }
-                                        } else return@forEach
+                                            dialog.incrementProgress(1)
+                                        } else {
+                                            dialog.dismiss()
+                                            return@addTask
+                                        }
                                     }
 
-                                    if (run) activity?.runOnUiThread {
-                                        dialog.dismiss()
-                                        toast.show("过滤成功：${result.size}")
-                                        adapter.setItemFirst(result)
+                                    dialog.dismiss()
+
+                                    toast.show("过滤成功：${result.size}")
+
+                                    uiHandler.let {
+                                        it.handleMessage(Message.obtain(it, MainActivity.UI_CHANGE_CATCHING_LIST, result))
                                     }
                                 }.onFailure {
                                     toast.show("过滤错误：$it")
@@ -236,37 +254,25 @@ class PlaceholderFragment(private val sectionNumber: Int, private val uiHandler:
                     .addTo(baseInfoList)
 
                 val lastUin = String(ProtocolDatas.getId("last_uin"))
+
                 val reader = ProtocolDatas.getId("$lastUin-AccountKey").toByteReadPacket()
-
-                val uinItem = baseInfoList.createItemView("Uin")
-                uinItem.detailText = lastUin
-
                 if (reader.hasBytes(18)) {
+                    val uinItem = baseInfoList.createItemView("Uin")
+                    uinItem.detailText = lastUin
+
                     reader.discardExact(reader.readShort().toInt())
 
-                    val a1Item = baseInfoList.createItemView("A1")
-                    a1Item.detailText = reader.readBytes(reader.readShort().toInt()).toHexString()
+                    val a1Item = baseInfoList.addTextItem("A1", reader.readBytes(reader.readShort().toInt()).toHexString())
 
-                    val a2Item = baseInfoList.createItemView("A2")
-                    a2Item.detailText = reader.readBytes(reader.readShort().toInt()).toHexString()
+                    val a2Item = baseInfoList.addTextItem("A2", reader.readBytes(reader.readShort().toInt()).toHexString())
+                    val a3Item = baseInfoList.addTextItem("A3", reader.readBytes(reader.readShort().toInt()).toHexString())
 
-                    val a3Item = baseInfoList.createItemView("A3")
-                    a3Item.detailText = reader.readBytes(reader.readShort().toInt()).toHexString()
+                    val d1Item = baseInfoList.addTextItem("D1", reader.readBytes(reader.readShort().toInt()).toHexString())
+                    val d2Item = baseInfoList.addTextItem("D2", reader.readBytes(reader.readShort().toInt()).toHexString())
 
-                    val d1Item = baseInfoList.createItemView("D1")
-                    d1Item.detailText = reader.readBytes(reader.readShort().toInt()).toHexString()
-
-                    val d2Item = baseInfoList.createItemView("D2")
-                    d2Item.detailText = reader.readBytes(reader.readShort().toInt()).toHexString()
-
-                    val s2Item = baseInfoList.createItemView("S2")
-                    s2Item.detailText = reader.readBytes(reader.readShort().toInt()).toHexString()
-
-                    val keyItem = baseInfoList.createItemView("Key")
-                    keyItem.detailText = reader.readBytes(reader.readShort().toInt()).toHexString()
-
-                    val cookieItem = baseInfoList.createItemView("Cookie")
-                    cookieItem.detailText = reader.readBytes(reader.readShort().toInt()).toHexString()
+                    val s2Item = baseInfoList.addTextItem("S2", reader.readBytes(reader.readShort().toInt()).toHexString())
+                    val keyItem = baseInfoList.addTextItem("Key", reader.readBytes(reader.readShort().toInt()).toHexString())
+                    val cookieItem = baseInfoList.addTextItem("Cookie", reader.readBytes(reader.readShort().toInt()).toHexString())
 
                     XUIGroupListView.newSection(context)
                         .setTitle("最后QQ操作者TOKEN")
