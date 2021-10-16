@@ -1,5 +1,6 @@
 package moe.ore.txhook.helper
 
+import kotlin.math.abs
 import kotlin.random.Random
 
 object BytesUtil {
@@ -156,4 +157,30 @@ object BytesUtil {
 
     @JvmStatic
     fun randomKey(size: Int) = Random.nextBytes(size)
+
+    fun containBytes(byteArray: ByteArray, require: ByteArray): Boolean {
+        if (byteArray.isEmpty() || require.isEmpty()) return false
+        val reader = byteArray.toByteReadPacket()
+        var requireReader = require.toByteReadPacket()
+        var hasFirst = true
+        var first = requireReader.readByte()
+        var match: Byte? = null
+        while (reader.hasBytes(1)) {
+            val n = reader.readByte()
+            if (n == first && hasFirst) {
+                hasFirst = false
+                if (requireReader.hasBytes(1)) match = requireReader.readByte() else return true
+            } else if (n != first && hasFirst) {
+                // nothing
+            } else if (!hasFirst && n == match) {
+                if (requireReader.hasBytes(1)) match = requireReader.readByte() else return true
+            } else if (!hasFirst && n != requireReader.readByte()) {
+                hasFirst = true
+                requireReader.closeQuietly()
+                requireReader = require.toByteReadPacket()
+                first = requireReader.readByte()
+            }
+        }
+        return false
+    }
 }

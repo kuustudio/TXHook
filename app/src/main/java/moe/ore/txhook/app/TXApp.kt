@@ -1,7 +1,6 @@
 package moe.ore.txhook.app
 
 import android.widget.ListView
-import androidx.constraintlayout.widget.ConstraintLayout
 import com.xuexiang.xui.widget.searchview.MaterialSearchView
 import moe.ore.txhook.R
 import moe.ore.txhook.catching.PacketService

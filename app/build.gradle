@@ -11,8 +11,8 @@ android {
         applicationId "moe.ore.txhook"
         minSdk 23
         targetSdk 29
-        versionCode 12119
-        versionName "1.2.26"
+        versionCode 12120
+        versionName "1.2.27"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

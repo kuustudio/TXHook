@@ -5,7 +5,6 @@ import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedBridge.log
 import de.robv.android.xposed.XposedHelpers
 import de.robv.android.xposed.callbacks.XCallback
-import moe.ore.txhook.more.logger
 import java.lang.Exception
 
 fun Class<*>?.callMethod(funName: String?, vararg args: Any?): Any? {

@@ -4,8 +4,8 @@ import android.Manifest
 import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
-import android.os.Looper
 import android.os.Message
+import android.text.InputType
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View.*
@@ -27,13 +27,12 @@ import android.view.animation.Animation
 
 import android.view.animation.TranslateAnimation
 import androidx.appcompat.content.res.AppCompatResources
-import com.xuexiang.xui.widget.searchview.MaterialSearchView
-import moe.ore.txhook.helper.ThreadManager
 
 import android.view.View
 import android.widget.ImageButton
 import moe.ore.txhook.catching.PacketService
-import moe.ore.txhook.helper.DebugUtil
+import moe.ore.txhook.helper.*
+
 
 class MainActivity : BaseActivity() {
     // private var isCatching: Boolean = false
@@ -68,6 +67,10 @@ class MainActivity : BaseActivity() {
                 UI_CHANGE_CATCHING_LIST -> {
                     changeContent(false, DebugUtil.forcedConvert(msg.obj)!!)
                 }
+                UI_FILTER_CATCHING_BY_MATCH -> {
+                    filterCatchingList(msg.arg1, msg.obj as String)
+                }
+
 
             }
         }
@@ -164,9 +167,50 @@ class MainActivity : BaseActivity() {
             MaterialDialog.Builder(this).title("高级过滤").items("包体包含过滤", "SEQ大小过滤", "包体大小过滤").itemsCallback { dialog: MaterialDialog?, _: View?, which: Int, _: CharSequence ->
                 dialog?.dismiss()
                 when(which) {
-                    0 -> {
-                        toast.show("包体内容包含过滤")
-
+                    0 -> runOnUiThread {
+                        MaterialDialog.Builder(this)
+                            .iconRes(R.drawable.ic_baseline_manage_search_24)
+                            .title("请输入内容")
+                            .content("输入被过滤包应该包含的内容，必须使用Hex输入")
+                            .inputType(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_WORDS)
+                            .input("这里输入内容哦~~", "", false, (MaterialDialog.InputCallback { v1: MaterialDialog?, input: CharSequence ->
+                                v1?.dismiss()
+                                filterCatchingList(2, input.toString())
+                            }))
+                            .positiveText("确定")
+                            .negativeText("取消")
+                            .cancelable(true)
+                            .show()
+                    }
+                    1 -> runOnUiThread {
+                        MaterialDialog.Builder(this)
+                            .iconRes(R.drawable.ic_baseline_manage_search_24)
+                            .title("请输入SEQ取值范围")
+                            .content("输入SEQ范围，请规范你的输入为xxx-xxx！")
+                            .inputType(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_WORDS)
+                            .input("xxx-zzz", "", false, (MaterialDialog.InputCallback { v1: MaterialDialog?, input: CharSequence ->
+                                v1?.dismiss()
+                                filterCatchingList(3, input.toString())
+                            }))
+                            .positiveText("确定")
+                            .negativeText("取消")
+                            .cancelable(true)
+                            .show()
+                    }
+                    2 -> runOnUiThread {
+                        MaterialDialog.Builder(this)
+                            .iconRes(R.drawable.ic_baseline_manage_search_24)
+                            .title("请输入包大小取值范围")
+                            .content("输入包大小范围，请规范你的输入为xxx-xxx！")
+                            .inputType(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_WORDS)
+                            .input("xxx-zzz", "", false, (MaterialDialog.InputCallback { v1: MaterialDialog?, input: CharSequence ->
+                                v1?.dismiss()
+                                filterCatchingList(4, input.toString())
+                            }))
+                            .positiveText("确定")
+                            .negativeText("取消")
+                            .cancelable(true)
+                            .show()
                     }
                     else -> error("未知高级过滤选项")
                 }
@@ -204,14 +248,176 @@ class MainActivity : BaseActivity() {
         inputActivity()
     }
 
+    private fun filterCatchingList(mode: Int, query: String) {
+        var canContinue = true
+
+        val sourceList = TXApp.catchingList
+        val dialogBuilder = MaterialDialog.Builder(this).iconRes(R.drawable.ic_baseline_manage_search_24).limitIconToDefaultSize()
+            .title("抓包过滤")
+            .content("正在过滤结果...")
+            .progress(false, sourceList.size)
+            .progressIndeterminateStyle(false)
+            .negativeText("取消")
+            .onNegative { dialog, _ ->
+                dialog.dismiss()
+                canContinue = false
+                toast.show("取消过滤")
+            }
+
+        when (mode) {
+            1 -> {
+                val dialog = dialogBuilder.show()
+                toast.show("开始过滤，模式：正则|包含|等于")
+                ThreadManager[0].addTask {
+                    fastTry {
+                        val result: ArrayList<PacketService> = arrayListOf()
+                        val regex = query.toRegex()
+                        sourceList.forEach {
+                            if (canContinue) {
+                                val cmd = if (it.to) it.toToService().cmd else it.toFromService().cmd
+                                if (query == cmd || cmd.contains(query, true) || regex.matches(cmd)) {
+                                    result.add(it)
+                                }
+                                dialog.incrementProgress(1)
+                            } else {
+                                dialog.dismiss()
+                                return@addTask
+                            }
+                        }
+                        dialog.dismiss()
+                        if (result.isNotEmpty()) {
+                            toast.show("过滤成功：${result.size}")
+                            changeContent(false, result)
+                        } else {
+                            toast.show("过滤成功：没有结果...")
+                        }
+                    }.onFailure {
+                        toast.show(it.message)
+                    }
+                }
+            }
+            2 -> {
+                toast.show("包体内容包含过滤")
+                val dialog = dialogBuilder.show()
+                ThreadManager[0].addTask {
+                    fastTry {
+                        val result: ArrayList<PacketService> = arrayListOf()
+                        val bytes = query.hex2ByteArray()
+                        sourceList.forEach {
+                            if (canContinue) {
+                                val buffer = if (it.to) it.toToService().buffer else it.toFromService().buffer
+
+                                if (BytesUtil.containBytes(buffer, bytes)) {
+                                    result.add(it)
+                                }
+
+                                dialog.incrementProgress(1)
+                            } else {
+                                dialog.dismiss()
+                                return@addTask
+                            }
+                        }
+                        dialog.dismiss()
+                        if (result.isNotEmpty()) {
+                            toast.show("过滤成功：${result.size}")
+                            changeContent(false, result)
+                        } else {
+                            toast.show("过滤成功：没有结果...")
+                        }
+                    }.onFailure {
+                        toast.show(it.message)
+                    }
+                }
+            }
+            3 -> {
+                toast.show("SEQ范围过滤")
+                val dialog = dialogBuilder.show()
+                ThreadManager[0].addTask {
+                    fastTry {
+                        val result: ArrayList<PacketService> = arrayListOf()
+
+                        val tmp = query.split("-")
+                        val start = tmp[0].trim().toInt()
+                        val end = tmp[1].trim().toInt()
+
+                        val range = IntRange(start, end)
+
+                        sourceList.forEach {
+                            if (canContinue) {
+                                val seq = if (it.to) it.toToService().seq else it.toFromService().seq
+
+                                if (seq in range) {
+                                    result.add(it)
+                                }
+
+                                dialog.incrementProgress(1)
+                            } else {
+                                dialog.dismiss()
+                                return@addTask
+                            }
+                        }
+                        dialog.dismiss()
+                        if (result.isNotEmpty()) {
+                            toast.show("过滤成功：${result.size}")
+                            changeContent(false, result)
+                        } else {
+                            toast.show("过滤成功：没有结果...")
+                        }
+                    }.onFailure {
+                        toast.show(it.message)
+                    }
+                }
+            }
+            4 -> {
+                toast.show("包体大小范围过滤")
+                val dialog = dialogBuilder.show()
+                ThreadManager[0].addTask {
+                    fastTry {
+                        val result: ArrayList<PacketService> = arrayListOf()
+
+                        val tmp = query.split("-")
+                        val start = tmp[0].trim().toInt()
+                        val end = tmp[1].trim().toInt()
+
+                        val range = IntRange(start, end)
+
+                        sourceList.forEach {
+                            if (canContinue) {
+                                val size = if (it.to) it.toToService().buffer.size else it.toFromService().buffer.size
+
+                                if (size in range) {
+                                    result.add(it)
+                                }
+
+                                dialog.incrementProgress(1)
+                            } else {
+                                dialog.dismiss()
+                                return@addTask
+                            }
+                        }
+                        dialog.dismiss()
+                        if (result.isNotEmpty()) {
+                            toast.show("过滤成功：${result.size}")
+                            changeContent(false, result)
+                        } else {
+                            toast.show("过滤成功：没有结果...")
+                        }
+                    }.onFailure {
+                        toast.show(it.message)
+                    }
+                }
+            }
+        }
+
+
+    }
+
     fun changeContent(isClick: Boolean = false, services: List<PacketService> = ProtocolDatas.getServices()) {
         if (!isChanging.get()) {
-            isChanging.set(true)
-
-            val catchingList = TXApp.getCatchingList()
-            adapter = catchingList.adapter as CatchingBaseAdapter?
             ThreadManager.getInstance(0).addTask {
-                // val services = ProtocolDatas.getServices()
+                isChanging.set(true)
+                val catchingList = TXApp.getCatchingList()
+                adapter = catchingList.adapter as CatchingBaseAdapter?
                 runOnUiThread {
                     if (services.isNotEmpty()) {
                         toast.show("刷新成功：${services.size}")
@@ -219,14 +425,15 @@ class MainActivity : BaseActivity() {
                         adapter?.notifyDataSetChanged()
                         TXApp.catching.multipleStatusView.showContent()
                     } else {
+                        TXApp.catchingList.clear()
                         TXApp.catching.multipleStatusView.showEmpty()
+                        toast.show("无任何数据哦~")
                     }
                 }
+                isChanging.set(false)
             }
-
-            isChanging.set(false)
         } else {
-            if (isClick) CookieBars.cookieBar(this, "提示一下", "正在刷新数据了哦~", "OK") {}
+            if (isClick) CookieBars.cookieBar(this, "提示一下", "正在刷新数据了哦~", "OK", null)
         }
     }
 
@@ -302,6 +509,7 @@ class MainActivity : BaseActivity() {
     companion object {
         const val UI_CHANGE_SEARCH_BUTTON = 0 // 改变搜索按钮图标
         const val UI_CHANGE_CATCHING_LIST = 1
+        const val UI_FILTER_CATCHING_BY_MATCH = 2
 
         init {
             AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)

@@ -131,55 +131,9 @@ class PlaceholderFragment(private val sectionNumber: Int, private val uiHandler:
                     })
                     mSearchView.setOnQueryTextListener(object : MaterialSearchView.OnQueryTextListener {
                         override fun onQueryTextSubmit(query: String): Boolean {
-                            toast.show("开始过滤，模式：正则|包含|等于")
-
-                            var run = true
-
-                            val sourceList = TXApp.catchingList
-                            val dialog = MaterialDialog.Builder(context!!)
-                                .iconRes(R.drawable.ic_baseline_manage_search_24)
-                                .limitIconToDefaultSize()
-                                .title("包名过滤")
-                                .content("正在过滤结果...")
-                                .progress(false, sourceList.size)
-                                .progressIndeterminateStyle(false)
-                                .negativeText("取消")
-                                .onNegative { dialog, _ ->
-                                    dialog.dismiss()
-                                    run = false
-                                    toast.show("取消过滤")
-                                }.show()
-
-                            ThreadManager[0].addTask {
-                                fastTry {
-                                    val regex = query.toRegex()
-                                    val result = arrayListOf<PacketService>()
-
-                                    sourceList.forEach {
-                                        if (run) {
-                                            val cmd = if (it.to) it.toToService().cmd else it.toFromService().cmd
-                                            if (query == cmd || cmd.contains(query, true) || regex.matches(cmd)) {
-                                                result.add(it)
-                                            }
-                                            dialog.incrementProgress(1)
-                                        } else {
-                                            dialog.dismiss()
-                                            return@addTask
-                                        }
-                                    }
-
-                                    dialog.dismiss()
-
-                                    toast.show("过滤成功：${result.size}")
-
-                                    uiHandler.let {
-                                        it.handleMessage(Message.obtain(it, MainActivity.UI_CHANGE_CATCHING_LIST, result))
-                                    }
-                                }.onFailure {
-                                    toast.show("过滤错误：$it")
-                                }
+                            uiHandler.let {
+                                it.handleMessage(Message.obtain(it, MainActivity.UI_FILTER_CATCHING_BY_MATCH, 1, 0, query))
                             }
-
                             return false
                         }
 

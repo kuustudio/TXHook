@@ -8,7 +8,7 @@ import com.haoge.easyandroid.EasyAndroid
 import com.haoge.easyandroid.easy.*
 import com.xuexiang.xui.XUI
 
-val logger: EasyLog by lazy { EasyLog.DEFAULT } // 可直接调用式logger
+// val logger: EasyLog by lazy { EasyLog.DEFAULT } // 可直接调用式logger
 val toast: EasyToast by lazy { EasyToast.DEFAULT }
 lateinit var config: Config
 
